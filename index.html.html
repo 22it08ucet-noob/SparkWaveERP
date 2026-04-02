@@ -1,0 +1,1780 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>SparkWave ERP</title>
+<link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=DM+Sans:wght@400;500;600&display=swap" rel="stylesheet"/>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<!-- Firebase SDK (v10 modular via CDN compat) -->
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-app-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-auth-compat.js"></script>
+<script src="https://www.gstatic.com/firebasejs/10.12.0/firebase-firestore-compat.js"></script>
+<style>
+*{box-sizing:border-box;margin:0;padding:0;}
+:root{
+  --navy:#0A2540;--teal:#00A8A8;--blue:#3A86FF;
+  --green:#2ECC71;--amber:#FFB347;--red:#FF6B6B;
+  --bg:#F5F7FA;--white:#fff;--border:#E4E9F0;
+  --text:#0A2540;--muted:#6B7A8D;--subtle:#9AA5B4;
+  --card:#fff;--sidebar-w:240px;
+}
+body{font-family:'DM Sans',sans-serif;background:var(--bg);color:var(--text);overflow-x:hidden;}
+.screen{display:none;width:100%;min-height:100vh;}
+.screen.active{display:flex;}
+
+/* ===== LOGIN ===== */
+#loginScreen{background:var(--navy);align-items:center;justify-content:center;padding:20px;position:relative;overflow:hidden;}
+#loginScreen::before{content:'';position:absolute;top:-200px;right:-200px;width:500px;height:500px;border-radius:50%;background:radial-gradient(circle,rgba(0,168,168,0.15),transparent 70%);pointer-events:none;}
+#loginScreen::after{content:'';position:absolute;bottom:-150px;left:-100px;width:400px;height:400px;border-radius:50%;background:radial-gradient(circle,rgba(58,134,255,0.1),transparent 70%);pointer-events:none;}
+.login-container{display:flex;border-radius:20px;overflow:hidden;width:100%;max-width:900px;box-shadow:0 40px 80px rgba(0,0,0,0.4);position:relative;z-index:1;}
+.login-left{background:linear-gradient(135deg,#0d3460 0%,#0A2540 60%,#061829 100%);padding:48px 40px;flex:1;display:flex;flex-direction:column;justify-content:center;border-right:1px solid rgba(255,255,255,0.06);min-width:0;}
+.login-right{background:#fff;padding:48px 40px;width:420px;flex-shrink:0;}
+.brand-mark{display:flex;align-items:center;gap:12px;margin-bottom:28px;}
+.brand-icon{width:48px;height:48px;background:linear-gradient(135deg,var(--teal),var(--blue));border-radius:14px;display:flex;align-items:center;justify-content:center;}
+.brand-name{font-family:'Poppins',sans-serif;font-size:22px;font-weight:800;color:#fff;letter-spacing:.5px;}
+.brand-name span{color:var(--teal);}
+.login-left h1{font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:#fff;line-height:1.3;margin-bottom:12px;}
+.login-left p{font-size:14px;color:#7FAFC8;line-height:1.7;margin-bottom:32px;}
+.feature-list{display:flex;flex-direction:column;gap:12px;}
+.feature-item{display:flex;align-items:center;gap:10px;font-size:13px;color:#A8CDE0;}
+.feature-dot{width:7px;height:7px;border-radius:50%;background:var(--teal);flex-shrink:0;}
+.login-right .rhead{margin-bottom:24px;}
+.login-right h2{font-family:'Poppins',sans-serif;font-size:22px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.login-right p{font-size:13px;color:var(--muted);}
+.role-tabs{display:flex;gap:5px;margin-bottom:20px;background:var(--bg);padding:4px;border-radius:10px;flex-wrap:wrap;}
+.role-tab{flex:1;padding:7px 4px;border:none;background:none;border-radius:7px;font-size:11px;font-family:'DM Sans',sans-serif;color:var(--muted);cursor:pointer;transition:all 0.2s;font-weight:500;white-space:nowrap;}
+.role-tab.active{background:#fff;color:var(--navy);font-weight:600;box-shadow:0 1px 4px rgba(0,0,0,0.1);}
+.form-field{margin-bottom:14px;}
+.form-field label{display:block;font-size:11px;font-weight:600;color:#4A5568;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;}
+.form-field input{width:100%;padding:10px 14px;border:1.5px solid var(--border);border-radius:9px;font-size:14px;font-family:'DM Sans',sans-serif;color:var(--navy);background:#fff;outline:none;transition:border 0.2s;}
+.form-field input:focus{border-color:var(--blue);box-shadow:0 0 0 3px rgba(58,134,255,0.1);}
+.forgot{text-align:right;margin:-6px 0 16px;}
+.forgot a{font-size:12px;color:var(--blue);text-decoration:none;}
+.btn-primary{width:100%;padding:12px;background:linear-gradient(135deg,var(--blue),#2170E8);color:#fff;border:none;border-radius:9px;font-size:14px;font-family:'Poppins',sans-serif;font-weight:700;cursor:pointer;transition:all 0.2s;letter-spacing:.3px;}
+.btn-primary:hover{transform:translateY(-1px);box-shadow:0 6px 20px rgba(58,134,255,0.35);}
+.divider{display:flex;align-items:center;gap:10px;margin:16px 0;}
+.divider hr{flex:1;border:none;border-top:1px solid var(--border);}
+.divider span{font-size:12px;color:var(--subtle);}
+.btn-google{width:100%;padding:10px;background:#fff;color:var(--navy);border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;font-weight:500;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:10px;transition:background 0.2s;}
+.btn-google:hover{background:var(--bg);}
+.secure-tag{display:flex;align-items:center;justify-content:center;gap:6px;margin-top:16px;font-size:11px;color:var(--subtle);}
+.secure-dot{width:6px;height:6px;border-radius:50%;background:var(--green);}
+
+/* ===== APP LAYOUT ===== */
+#appScreen{flex-direction:row;}
+.sidebar{width:var(--sidebar-w);background:var(--navy);display:flex;flex-direction:column;flex-shrink:0;height:100vh;position:sticky;top:0;z-index:50;overflow:hidden;transition:width .25s;}
+.sidebar.collapsed{width:64px;}
+.sb-brand{display:flex;align-items:center;gap:10px;padding:18px 16px;border-bottom:1px solid rgba(255,255,255,0.07);}
+.sb-logo{width:36px;height:36px;background:linear-gradient(135deg,var(--teal),var(--blue));border-radius:10px;display:flex;align-items:center;justify-content:center;flex-shrink:0;}
+.sb-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:800;color:#fff;white-space:nowrap;letter-spacing:.5px;}
+.sb-title span{color:var(--teal);}
+.sb-nav{padding:10px 0;flex:1;overflow-y:auto;overflow-x:hidden;}
+.sb-section{font-size:10px;color:rgba(255,255,255,0.3);letter-spacing:1.5px;padding:14px 16px 4px;white-space:nowrap;text-transform:uppercase;}
+.nav-item{display:flex;align-items:center;gap:11px;padding:10px 16px;cursor:pointer;transition:all 0.15s;border-left:3px solid transparent;white-space:nowrap;}
+.nav-item:hover{background:rgba(255,255,255,0.06);}
+.nav-item.active{background:rgba(58,134,255,0.15);border-left-color:var(--blue);}
+.nav-icon{width:18px;height:18px;flex-shrink:0;opacity:0.55;}
+.nav-item.active .nav-icon,.nav-item:hover .nav-icon{opacity:1;}
+.nav-label{font-size:13px;color:rgba(255,255,255,0.6);overflow:hidden;}
+.nav-item.active .nav-label{color:#fff;font-weight:600;}
+.nav-badge{margin-left:auto;background:var(--red);color:#fff;font-size:10px;font-weight:700;padding:1px 6px;border-radius:10px;flex-shrink:0;}
+.sb-footer{padding:12px 14px;border-top:1px solid rgba(255,255,255,0.07);}
+.user-row{display:flex;align-items:center;gap:9px;cursor:pointer;padding:6px 2px;border-radius:8px;transition:background .2s;}
+.user-row:hover{background:rgba(255,255,255,0.06);}
+.user-av{width:34px;height:34px;border-radius:50%;background:linear-gradient(135deg,var(--blue),var(--teal));display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff;flex-shrink:0;}
+.user-name{font-size:13px;color:#fff;font-weight:600;white-space:nowrap;}
+.user-role{font-size:11px;color:rgba(255,255,255,0.4);white-space:nowrap;}
+.main{flex:1;display:flex;flex-direction:column;overflow:hidden;min-width:0;}
+.topbar{background:#fff;border-bottom:1px solid var(--border);padding:0 22px;height:60px;display:flex;align-items:center;justify-content:space-between;flex-shrink:0;gap:12px;}
+.topbar-left{display:flex;align-items:center;gap:14px;}
+.hamburger{width:36px;height:36px;border:none;background:none;cursor:pointer;display:flex;flex-direction:column;justify-content:center;gap:4px;padding:6px;border-radius:9px;transition:background .2s;}
+.hamburger:hover{background:var(--bg);}
+.hamburger span{display:block;width:18px;height:2px;background:var(--navy);border-radius:2px;}
+.page-title{font-family:'Poppins',sans-serif;font-size:16px;font-weight:700;color:var(--navy);}
+.page-sub{font-size:12px;color:var(--subtle);margin-top:1px;}
+.topbar-right{display:flex;align-items:center;gap:8px;}
+.icon-btn{width:36px;height:36px;border-radius:9px;background:var(--bg);border:1px solid var(--border);display:flex;align-items:center;justify-content:center;cursor:pointer;position:relative;transition:background .2s;}
+.icon-btn:hover{background:#eee;}
+.notif-dot{width:8px;height:8px;background:var(--red);border-radius:50%;position:absolute;top:5px;right:5px;border:1.5px solid #fff;}
+.date-chip{font-size:12px;color:var(--muted);background:var(--bg);padding:6px 14px;border-radius:8px;border:1px solid var(--border);}
+.content{flex:1;padding:22px;overflow-y:auto;}
+
+/* ===== PAGE SECTIONS ===== */
+.page-section{display:none;}
+.page-section.active{display:block;}
+
+/* ===== COMPONENTS ===== */
+.stat-grid{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:22px;}
+.stat-card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:18px;transition:box-shadow .2s,transform .2s;}
+.stat-card:hover{box-shadow:0 6px 24px rgba(0,0,0,0.07);transform:translateY(-2px);}
+.stat-icon{width:40px;height:40px;border-radius:11px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;}
+.stat-label{font-size:12px;color:var(--muted);margin-bottom:5px;font-weight:500;}
+.stat-value{font-family:'Poppins',sans-serif;font-size:26px;font-weight:800;color:var(--navy);margin-bottom:5px;}
+.stat-badge{display:inline-flex;align-items:center;gap:4px;font-size:11px;padding:2px 9px;border-radius:20px;font-weight:600;}
+.bg-green{background:#E8F8F0;}.txt-green{color:#1A7A4A;}
+.bg-amber{background:#FFF4E0;}.txt-amber{color:#B7700A;}
+.bg-red{background:#FDEAEA;}.txt-red{color:#C0392B;}
+.bg-blue{background:#EEF5FF;}.txt-blue{color:#1A5FC8;}
+.bg-teal{background:#E0F7F7;}.txt-teal{color:#007A7A;}
+.card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:20px;}
+.card-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:16px;}
+.card-title{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--navy);}
+.card-sub{font-size:12px;color:var(--subtle);margin-top:2px;}
+.charts-row{display:grid;grid-template-columns:minmax(0,2fr) minmax(0,1fr);gap:16px;margin-bottom:20px;}
+.two-col{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-bottom:20px;}
+.three-col{display:grid;grid-template-columns:1fr 1fr 1fr;gap:16px;margin-bottom:20px;}
+.pill{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:20px;font-size:11px;font-weight:600;}
+.pill-green{background:#E8F8F0;color:#1A7A4A;}
+.pill-amber{background:#FFF4E0;color:#B7700A;}
+.pill-red{background:#FDEAEA;color:#C0392B;}
+.pill-blue{background:#EEF5FF;color:#1A5FC8;}
+.pill-teal{background:#E0F7F7;color:#007A7A;}
+table{width:100%;border-collapse:collapse;font-size:13px;}
+thead th{text-align:left;padding:11px 14px;color:var(--muted);font-weight:600;border-bottom:1px solid var(--border);font-size:12px;background:#FAFBFC;white-space:nowrap;}
+tbody td{padding:12px 14px;color:var(--navy);border-bottom:1px solid #F0F4F8;vertical-align:middle;}
+tbody tr:last-child td{border-bottom:none;}
+tbody tr:hover{background:#F8FAFD;}
+.prog-bar{height:6px;background:#EEF3FF;border-radius:4px;overflow:hidden;margin-top:4px;}
+.prog-fill{height:100%;border-radius:4px;transition:width .5s;}
+.filter-bar{display:flex;align-items:center;gap:10px;margin-bottom:18px;flex-wrap:wrap;}
+.filter-bar select,.filter-bar input[type=text],.filter-bar input[type=date]{padding:8px 12px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--text);background:#fff;outline:none;}
+.btn-add{display:flex;align-items:center;gap:6px;padding:9px 18px;background:var(--blue);color:#fff;border:none;border-radius:9px;font-size:13px;font-family:'Poppins',sans-serif;font-weight:600;cursor:pointer;margin-left:auto;transition:all .2s;}
+.btn-add:hover{background:#2170E8;transform:translateY(-1px);}
+.btn-outline{display:flex;align-items:center;gap:6px;padding:8px 14px;background:#fff;color:var(--navy);border:1.5px solid var(--border);border-radius:9px;font-size:13px;cursor:pointer;transition:background .2s;}
+.btn-outline:hover{background:var(--bg);}
+
+/* ===== MODAL ===== */
+.modal-overlay{display:none;position:fixed;inset:0;background:rgba(10,37,64,0.5);z-index:200;align-items:center;justify-content:center;padding:16px;}
+.modal-overlay.open{display:flex;}
+.modal{background:#fff;border-radius:18px;padding:28px;width:100%;max-width:500px;box-shadow:0 30px 80px rgba(0,0,0,0.25);animation:modalIn .25s ease;}
+@keyframes modalIn{from{opacity:0;transform:scale(.95) translateY(10px);}to{opacity:1;transform:scale(1) translateY(0);}}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;}
+.modal-title{font-family:'Poppins',sans-serif;font-size:17px;font-weight:700;color:var(--navy);}
+.modal-close{border:none;background:none;font-size:22px;cursor:pointer;color:var(--subtle);line-height:1;}
+.m-field{margin-bottom:14px;}
+.m-field label{display:block;font-size:11px;font-weight:600;color:#4A5568;margin-bottom:5px;letter-spacing:.5px;text-transform:uppercase;}
+.m-field input,.m-field select,.m-field textarea{width:100%;padding:9px 13px;border:1.5px solid var(--border);border-radius:9px;font-size:13px;font-family:'DM Sans',sans-serif;color:var(--navy);outline:none;transition:border .2s;}
+.m-field input:focus,.m-field select:focus{border-color:var(--blue);}
+.m-row{display:grid;grid-template-columns:1fr 1fr;gap:12px;}
+.btn-submit{width:100%;padding:12px;background:var(--blue);color:#fff;border:none;border-radius:9px;font-size:14px;font-family:'Poppins',sans-serif;font-weight:700;cursor:pointer;margin-top:6px;transition:all .2s;}
+.btn-submit:hover{background:#2170E8;}
+
+/* ===== TOGGLE ===== */
+.toggle{position:relative;width:42px;height:24px;flex-shrink:0;}
+.toggle input{opacity:0;width:0;height:0;}
+.toggle-slider{position:absolute;inset:0;background:#DDE3EA;border-radius:12px;cursor:pointer;transition:.3s;}
+.toggle-slider::before{content:'';position:absolute;left:3px;top:3px;width:18px;height:18px;border-radius:50%;background:#fff;transition:.3s;box-shadow:0 1px 3px rgba(0,0,0,.2);}
+.toggle input:checked+.toggle-slider{background:var(--blue);}
+.toggle input:checked+.toggle-slider::before{transform:translateX(18px);}
+
+/* ===== HR MODULE ===== */
+.worker-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(280px,1fr));gap:14px;margin-bottom:20px;}
+.worker-card{display:flex;align-items:center;gap:14px;padding:16px;border:1px solid var(--border);border-radius:13px;background:#fff;transition:all .2s;cursor:pointer;}
+.worker-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.08);transform:translateY(-2px);}
+.worker-av{width:46px;height:46px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:15px;font-weight:800;color:#fff;flex-shrink:0;}
+.worker-name{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--navy);}
+.worker-role{font-size:12px;color:var(--muted);margin-top:2px;}
+.worker-salary{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-top:4px;}
+
+/* ===== INVENTORY ===== */
+.inv-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:14px;margin-bottom:20px;}
+.inv-card{background:#fff;border-radius:13px;border:1px solid var(--border);padding:18px;transition:all .2s;}
+.inv-card:hover{box-shadow:0 4px 20px rgba(0,0,0,0.07);transform:translateY(-2px);}
+.inv-icon{width:44px;height:44px;border-radius:12px;display:flex;align-items:center;justify-content:center;margin-bottom:12px;font-size:22px;}
+.inv-name{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.inv-qty{font-size:24px;font-weight:800;font-family:'Poppins',sans-serif;color:var(--navy);}
+.inv-unit{font-size:12px;color:var(--muted);}
+.inv-bar{height:5px;background:#EEF3FF;border-radius:4px;margin-top:10px;overflow:hidden;}
+.inv-fill{height:100%;border-radius:4px;}
+
+/* ===== EQUIPMENT ===== */
+.equip-grid{display:grid;grid-template-columns:repeat(auto-fill,minmax(260px,1fr));gap:14px;margin-bottom:20px;}
+.equip-card{background:#fff;border-radius:14px;border:1px solid var(--border);padding:20px;transition:all .2s;}
+.equip-card:hover{box-shadow:0 6px 24px rgba(0,0,0,0.08);transform:translateY(-2px);}
+.equip-card-icon{width:54px;height:54px;border-radius:15px;display:flex;align-items:center;justify-content:center;margin-bottom:14px;font-size:26px;}
+.equip-card-name{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:4px;}
+.equip-card-site{font-size:12px;color:var(--muted);margin-bottom:12px;}
+.equip-footer{display:flex;align-items:center;justify-content:space-between;padding-top:12px;border-top:1px solid var(--border);}
+.equip-stat-val{font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--navy);}
+.equip-stat-label{font-size:10px;color:var(--subtle);margin-top:1px;}
+.live-dot{width:8px;height:8px;border-radius:50%;animation:pulse 1.5s infinite;display:inline-block;}
+/* Empty state */
+.empty-state{text-align:center;padding:60px 20px;color:var(--muted);}
+.empty-state .es-icon{font-size:48px;margin-bottom:12px;}
+.empty-state .es-title{font-family:'Poppins',sans-serif;font-size:15px;font-weight:700;color:var(--navy);margin-bottom:6px;}
+.empty-state .es-sub{font-size:13px;color:var(--muted);}
+@keyframes pulse{0%,100%{opacity:1;}50%{opacity:.3;}}
+
+/* ===== BILLING ===== */
+.invoice-row{display:flex;align-items:center;justify-content:space-between;padding:14px 0;border-bottom:1px solid #F0F4F8;}
+.invoice-row:last-child{border-bottom:none;}
+
+/* ===== SETTINGS ===== */
+.settings-section{background:#fff;border-radius:14px;border:1px solid var(--border);margin-bottom:16px;overflow:hidden;}
+.settings-section-header{padding:16px 20px;border-bottom:1px solid var(--border);font-family:'Poppins',sans-serif;font-size:14px;font-weight:700;color:var(--navy);}
+.setting-row{display:flex;align-items:center;justify-content:space-between;padding:14px 20px;border-bottom:1px solid #F5F7FA;}
+.setting-row:last-child{border-bottom:none;}
+.setting-label{font-size:13px;font-weight:500;color:var(--navy);}
+.setting-sub{font-size:12px;color:var(--muted);margin-top:2px;}
+
+/* ===== TIMELINE ===== */
+.timeline{padding-left:20px;border-left:2px solid var(--border);}
+.timeline-item{position:relative;padding:0 0 16px 20px;}
+.timeline-item::before{content:'';position:absolute;left:-25px;top:4px;width:10px;height:10px;border-radius:50%;background:var(--blue);border:2px solid #fff;box-shadow:0 0 0 2px var(--blue);}
+.timeline-date{font-size:11px;color:var(--subtle);margin-bottom:3px;}
+.timeline-text{font-size:13px;color:var(--navy);font-weight:500;}
+
+/* ===== MOBILE ===== */
+.mob-overlay{display:none;position:fixed;inset:0;background:rgba(0,0,0,0.4);z-index:49;}
+.mob-overlay.open{display:block;}
+
+@media(max-width:1024px){.stat-grid{grid-template-columns:repeat(2,1fr);}.charts-row{grid-template-columns:1fr;}.two-col{grid-template-columns:1fr;}.three-col{grid-template-columns:1fr;}}
+@media(max-width:768px){
+  :root{--sidebar-w:240px;}
+  .sidebar{position:fixed;left:-240px;top:0;height:100%;transition:left .25s;z-index:50;}
+  .sidebar.mobile-open{left:0;}
+  .date-chip{display:none;}
+  .content{padding:14px;}
+  .stat-grid{grid-template-columns:repeat(2,1fr);}
+  .login-left{display:none;}
+  .login-right{width:100%;}
+  .worker-grid{grid-template-columns:1fr;}
+  .equip-grid{grid-template-columns:1fr;}
+  .inv-grid{grid-template-columns:repeat(2,1fr);}
+}
+@media(max-width:480px){.stat-grid{grid-template-columns:1fr;}.m-row{grid-template-columns:1fr;}.inv-grid{grid-template-columns:1fr;}}
+</style>
+</head>
+<body>
+
+<!-- ===== LOGIN ===== -->
+<div id="loginScreen" class="screen active">
+  <div class="login-container">
+    <div class="login-left">
+      <div class="brand-mark">
+        <div class="brand-icon">
+          <svg width="26" height="26" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H12L11 22L19.5 10.5H12L13 2Z" stroke="#fff" stroke-width="2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+        </div>
+        <span class="brand-name">Spark<span>Wave</span></span>
+      </div>
+      <h1>The Complete Construction ERP Platform</h1>
+      <p>Manage HR, Inventory, Equipment, Budget, Billing and more — all from one powerful dashboard built for modern construction teams.</p>
+      <div class="feature-list">
+        <div class="feature-item"><div class="feature-dot"></div>HR & Payroll management</div>
+        <div class="feature-item"><div class="feature-dot"></div>Real-time inventory tracking</div>
+        <div class="feature-item"><div class="feature-dot"></div>Purchase orders & vendor management</div>
+        <div class="feature-item"><div class="feature-dot"></div>Equipment & maintenance scheduling</div>
+        <div class="feature-item"><div class="feature-dot"></div>Budget vs actual cost tracking</div>
+        <div class="feature-item"><div class="feature-dot"></div>Client billing & document management</div>
+      </div>
+    </div>
+    <div class="login-right">
+      <div class="rhead">
+        <h2>Welcome back</h2>
+        <p>Sign in to your SparkWave ERP account</p>
+      </div>
+      <div class="role-tabs">
+        <button class="role-tab active" onclick="setRole(this,'Admin')">Admin</button>
+        <button class="role-tab" onclick="setRole(this,'Site Manager')">Site Mgr</button>
+        <button class="role-tab" onclick="setRole(this,'Accountant')">Accountant</button>
+        <button class="role-tab" onclick="setRole(this,'Client')">Client</button>
+      </div>
+      <div class="form-field"><label>Email Address</label><input type="email" placeholder="you@company.com" id="loginEmail"/></div>
+      <div class="form-field"><label>Password</label><input type="password" placeholder="Enter password" id="loginPass"/></div>
+      <div class="forgot"><a href="#">Forgot password?</a></div>
+      <button class="btn-primary" onclick="doLogin()">Sign In to SparkWave ERP</button>
+
+      <div class="secure-tag"><div class="secure-dot"></div>Secured by Firebase Authentication</div>
+    </div>
+  </div>
+</div>
+
+<!-- ===== APP SCREEN ===== -->
+<div id="appScreen" class="screen">
+  <div class="mob-overlay" id="mobOverlay" onclick="closeMob()"></div>
+
+  <!-- SIDEBAR -->
+  <div class="sidebar" id="sidebar">
+    <div class="sb-brand">
+      <div class="sb-logo">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none"><path d="M13 2L4.5 13.5H12L11 22L19.5 10.5H12L13 2Z" stroke="#fff" stroke-width="2.2" stroke-linejoin="round" stroke-linecap="round"/></svg>
+      </div>
+      <span class="sb-title">Spark<span>Wave</span></span>
+    </div>
+    <div class="sb-nav">
+      <div class="sb-section">Main</div>
+      <div class="nav-item active" data-page="dashboard" onclick="nav(this,'dashboard')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/><rect x="14" y="14" width="7" height="7"/></svg>
+        <span class="nav-label">Dashboard</span>
+      </div>
+      <div class="nav-item" data-page="projects" onclick="nav(this,'projects')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/><path d="M9 22V12h6v10"/></svg>
+        <span class="nav-label">Projects</span>
+        <span class="nav-badge">4</span>
+      </div>
+      <div class="sb-section">HR & Finance</div>
+      <div class="nav-item" data-page="hr" onclick="nav(this,'hr')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75"/></svg>
+        <span class="nav-label">HR & Payroll</span>
+      </div>
+      <div class="nav-item" data-page="budget" onclick="nav(this,'budget')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>
+        <span class="nav-label">Budget & Cost</span>
+      </div>
+      <div class="nav-item" data-page="billing" onclick="nav(this,'billing')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/></svg>
+        <span class="nav-label">Billing & Invoice</span>
+        <span class="nav-badge">2</span>
+      </div>
+      <div class="sb-section">Operations</div>
+      <div class="nav-item" data-page="inventory" onclick="nav(this,'inventory')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>
+        <span class="nav-label">Inventory</span>
+      </div>
+      <div class="nav-item" data-page="purchase" onclick="nav(this,'purchase')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="9" cy="21" r="1"/><circle cx="20" cy="21" r="1"/><path d="M1 1h4l2.68 13.39a2 2 0 002 1.61h9.72a2 2 0 002-1.61L23 6H6"/></svg>
+        <span class="nav-label">Purchase Orders</span>
+      </div>
+      <div class="nav-item" data-page="equipment" onclick="nav(this,'equipment')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>
+        <span class="nav-label">Equipment</span>
+      </div>
+      <div class="nav-item" data-page="documents" onclick="nav(this,'documents')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M22 19a2 2 0 01-2 2H4a2 2 0 01-2-2V5a2 2 0 012-2h5l2 3h9a2 2 0 012 2z"/></svg>
+        <span class="nav-label">Documents</span>
+      </div>
+      <div class="sb-section">System</div>
+      <div class="nav-item" data-page="settings" onclick="nav(this,'settings')">
+        <svg class="nav-icon" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z"/></svg>
+        <span class="nav-label">Settings</span>
+      </div>
+    </div>
+    <div class="sb-footer">
+      <div class="user-row">
+        <div class="user-av">AD</div>
+        <div style="overflow:hidden;">
+          <div class="user-name">Admin User</div>
+          <div class="user-role" id="userRoleLabel">Administrator</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-left">
+        <button class="hamburger" onclick="toggleSidebar()"><span></span><span></span><span></span></button>
+        <div>
+          <div class="page-title" id="pageTitle">Dashboard</div>
+          <div class="page-sub" id="pageSub">Welcome back, Admin</div>
+        </div>
+      </div>
+      <div class="topbar-right">
+        <div class="date-chip" id="datechip"></div>
+        <div class="icon-btn" title="Search">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7A8D" stroke-width="2"><circle cx="11" cy="11" r="8"/><line x1="21" y1="21" x2="16.65" y2="16.65"/></svg>
+        </div>
+        <div class="icon-btn" title="Notifications">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7A8D" stroke-width="2"><path d="M18 8A6 6 0 006 8c0 7-3 9-3 9h18s-3-2-3-9M13.73 21a2 2 0 01-3.46 0"/></svg>
+          <div class="notif-dot"></div>
+        </div>
+        <div class="icon-btn" title="Logout" onclick="doLogout()">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#6B7A8D" stroke-width="2"><path d="M9 21H5a2 2 0 01-2-2V5a2 2 0 012-2h4M16 17l5-5-5-5M21 12H9"/></svg>
+        </div>
+      </div>
+    </div>
+
+    <div class="content">
+
+      <!-- ===== DASHBOARD ===== -->
+      <div class="page-section active" id="sec-dashboard">
+        <div id="dashboardContent"><!-- rendered by renderDashboard() --></div>
+      </div>
+
+      <!-- DASHBOARD PLACEHOLDER REMOVED - rendered dynamically -->
+      <div style="display:none">
+        <div class="stat-grid">
+          <div class="stat-card">
+            <div class="stat-icon bg-blue"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#3A86FF" stroke-width="2"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg></div>
+            <div class="stat-label">Active Projects</div>
+            <div class="stat-value" id="dashProjects">12</div>
+            <div class="stat-badge bg-green txt-green">▲ 3 new</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-teal"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#00A8A8" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg></div>
+            <div class="stat-label">Total Workers</div>
+            <div class="stat-value" id="dashWorkers">0</div>
+            <div class="stat-badge bg-amber txt-amber" id="dashWorkersLeave">0 on leave</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-green"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#2ECC71" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg></div>
+            <div class="stat-label">Monthly Revenue</div>
+            <div class="stat-value">₹42.6L</div>
+            <div class="stat-badge bg-green txt-green">▲ 8.2%</div>
+          </div>
+          <div class="stat-card">
+            <div class="stat-icon bg-amber"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="#FFB347" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg></div>
+            <div class="stat-label">Low Stock Items</div>
+            <div class="stat-value" id="dashLowStock">7</div>
+            <div class="stat-badge bg-red txt-red">▼ Needs reorder</div>
+          </div>
+        </div>
+        <div class="charts-row">
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Monthly Budget vs Actual Cost</div><div class="card-sub">Last 6 months comparison</div></div></div>
+            <canvas id="budgetChart" height="100"></canvas>
+          </div>
+          <div class="card">
+            <div class="card-header"><div><div class="card-title">Project Status</div><div class="card-sub">Current distribution</div></div></div>
+            <canvas id="statusChart" height="180"></canvas>
+          </div>
+        </div>
+        <div class="two-col">
+          <div class="card">
+            <div class="card-header"><div class="card-title">Recent Purchase Orders</div></div>
+            <table>
+              <thead><tr><th>Vendor</th><th>Material</th><th>Amount</th><th>Status</th></tr></thead>
+              <tbody>
+
+              </tbody>
+            </table>
+          </div>
+          <div class="card">
+            <div class="card-header"><div class="card-title">Equipment Status</div></div>
+            <table>
+              <thead><tr><th>Equipment</th><th>Site</th><th>Status</th></tr></thead>
+              <tbody>
+
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div><!-- /hidden -->
+
+      <!-- ===== PROJECTS ===== -->
+      <div class="page-section" id="sec-projects">
+        <div class="filter-bar">
+          <select><option>All Sites</option><option>Site A - Velachery</option><option>Site B - OMR</option><option>Site C - Porur</option></select>
+          <select><option>All Status</option><option>Active</option><option>On Hold</option><option>Completed</option></select>
+          <button class="btn-add" onclick="openModal('addProjectModal')">+ New Project</button>
+        </div>
+        <table>
+          <thead><tr><th>Project Name</th><th>Client</th><th>Start</th><th>Deadline</th><th>Budget</th><th>Progress</th><th>Status</th></tr></thead>
+          <tbody id="projectsTbody">
+          </tbody>
+        </table>
+      </div>
+
+      <!-- ===== HR & PAYROLL ===== -->
+      <div class="page-section" id="sec-hr">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-icon bg-blue"></div><div class="stat-label">Total Employees</div><div class="stat-value" id="hrTotal">0</div><div class="stat-badge bg-blue txt-blue">All staff</div></div>
+          <div class="stat-card"><div class="stat-icon bg-green"></div><div class="stat-label">Present Today</div><div class="stat-value" id="hrPresent">0</div><div class="stat-badge bg-green txt-green">On site</div></div>
+          <div class="stat-card"><div class="stat-icon bg-amber"></div><div class="stat-label">Monthly Payroll</div><div class="stat-value" id="hrPayroll">₹0</div><div class="stat-badge bg-amber txt-amber">Total salary</div></div>
+          <div class="stat-card"><div class="stat-icon bg-red"></div><div class="stat-label">On Leave</div><div class="stat-value" id="hrLeave">0</div><div class="stat-badge bg-red txt-red">Absent today</div></div>
+        </div>
+        <div class="filter-bar">
+          <input type="text" placeholder="Search employee..."/>
+          <select><option>All Roles</option><option>Engineer</option><option>Supervisor</option><option>Labour</option><option>Operator</option></select>
+          <select><option>All Sites</option><option>Site A</option><option>Site B</option><option>Site C</option></select>
+          <button class="btn-add" onclick="openModal('addWorkerModal')">+ Add Employee</button>
+        </div>
+        <div class="worker-grid" id="workerGrid">
+        </div>
+      </div>
+
+      <!-- ===== BUDGET & COST ===== -->
+      <div class="page-section" id="sec-budget">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Total Projects</div><div class="stat-value" id="budgetTotalProjects">0</div><div class="stat-badge bg-blue txt-blue">All Projects</div></div>
+          <div class="stat-card"><div class="stat-label">Active Projects</div><div class="stat-value" id="budgetActiveProjects">0</div><div class="stat-badge bg-green txt-green">Running</div></div>
+          <div class="stat-card"><div class="stat-label">On Hold</div><div class="stat-value" id="budgetOnHold">0</div><div class="stat-badge bg-amber txt-amber">Paused</div></div>
+          <div class="stat-card"><div class="stat-label">Completed</div><div class="stat-value" id="budgetCompleted">0</div><div class="stat-badge bg-teal txt-teal">Done</div></div>
+        </div>
+        <div class="card" style="margin-bottom:16px;">
+          <div class="card-header"><div class="card-title">Project-wise Budget vs Progress</div></div>
+          <table>
+            <thead><tr><th>Project</th><th>Client</th><th>Budget</th><th>Progress</th><th>Status</th></tr></thead>
+            <tbody id="budgetTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== BILLING ===== -->
+      <div class="page-section" id="sec-billing">
+        <div class="stat-grid">
+          <div class="stat-card"><div class="stat-label">Total Invoices</div><div class="stat-value" id="billTotal">0</div><div class="stat-badge bg-blue txt-blue">All time</div></div>
+          <div class="stat-card"><div class="stat-label">Paid</div><div class="stat-value" id="billPaid">0</div><div class="stat-badge bg-green txt-green">Collected</div></div>
+          <div class="stat-card"><div class="stat-label">Pending</div><div class="stat-value" id="billPending">0</div><div class="stat-badge bg-amber txt-amber">Awaiting</div></div>
+          <div class="stat-card"><div class="stat-label">Overdue</div><div class="stat-value" id="billOverdue">0</div><div class="stat-badge bg-red txt-red">Action needed</div></div>
+        </div>
+        <div class="filter-bar">
+          <select id="invFilterClient"><option value="">All Clients</option></select>
+          <select><option>All Status</option><option>Paid</option><option>Pending</option><option>Overdue</option></select>
+          <button class="btn-add" onclick="openModal('addInvoiceModal')">+ New Invoice</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Invoice #</th><th>Client</th><th>Project</th><th>Amount</th><th>Due Date</th><th>Status</th></tr></thead>
+            <tbody id="invoiceTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== INVENTORY ===== -->
+      <div class="page-section" id="sec-inventory">
+        <div class="filter-bar">
+          <input type="text" placeholder="Search material..."/>
+          <select><option>All Categories</option><option>Concrete</option><option>Steel</option><option>Electrical</option><option>Plumbing</option></select>
+          <select><option>All Sites</option><option>Site A</option><option>Site B</option><option>Site C</option></select>
+          <button class="btn-add" onclick="openModal('addStockModal')">+ Add Stock</button>
+        </div>
+        <div class="inv-grid" id="invGrid">
+        </div>
+      </div>
+
+      <!-- ===== PURCHASE ORDERS ===== -->
+      <div class="page-section" id="sec-purchase">
+        <div class="filter-bar">
+          <select id="poFilterVendor"><option value="">All Vendors</option></select>
+          <select><option>All Status</option><option>Ordered</option><option>In Transit</option><option>Delivered</option><option>Pending</option></select>
+          <button class="btn-add" onclick="openModal('addPOModal')">+ New PO</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>PO Number</th><th>Vendor</th><th>Material</th><th>Qty</th><th>Amount</th><th>Order Date</th><th>Expected</th><th>Status</th></tr></thead>
+            <tbody id="poTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== EQUIPMENT ===== -->
+      <div class="page-section" id="sec-equipment">
+        <div class="filter-bar">
+          <select><option>All Sites</option><option>Site A</option><option>Site B</option><option>Site C</option><option>Workshop</option></select>
+          <select><option>All Status</option><option>Active</option><option>Maintenance</option><option>Repair</option><option>Idle</option></select>
+          <button class="btn-add" onclick="openModal('addEquipModal')">+ Add Equipment</button>
+        </div>
+        <div class="equip-grid" id="equipGrid">
+        </div>
+      </div>
+
+      <!-- ===== DOCUMENTS ===== -->
+      <div class="page-section" id="sec-documents">
+        <div class="filter-bar">
+          <select id="docFilterProject"><option value="">All Projects</option></select>
+          <select id="docFilterType"><option value="">All Types</option><option>Drawing</option><option>Permit</option><option>Contract</option><option>Report</option><option>Other</option></select>
+          <button class="btn-add" onclick="openModal('addDocModal')">+ Upload Document</button>
+        </div>
+        <div class="card">
+          <table>
+            <thead><tr><th>Document Name</th><th>Project</th><th>Type</th><th>Uploaded By</th><th>Date</th><th>Action</th></tr></thead>
+            <tbody id="docTbody"></tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- ===== SETTINGS ===== -->
+      <div class="page-section" id="sec-settings">
+        <div class="two-col">
+          <div>
+            <div class="settings-section">
+              <div class="settings-section-header">Company Info</div>
+              <div class="setting-row"><div><div class="setting-label">Company Name</div><div class="setting-sub" id="setCompanyName">—</div></div><button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="openModal('editCompanyModal')">Edit</button></div>
+              <div class="setting-row"><div><div class="setting-label">GSTIN</div><div class="setting-sub" id="setGSTIN">—</div></div><button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="openModal('editCompanyModal')">Edit</button></div>
+              <div class="setting-row"><div><div class="setting-label">Address</div><div class="setting-sub" id="setAddress">—</div></div><button class="btn-outline" style="font-size:12px;padding:6px 12px;" onclick="openModal('editCompanyModal')">Edit</button></div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-header">Notifications</div>
+              <div class="setting-row"><div><div class="setting-label">Low Stock Alerts</div><div class="setting-sub">Alert when inventory below minimum</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+              <div class="setting-row"><div><div class="setting-label">Payroll Reminders</div><div class="setting-sub">Reminder 3 days before due date</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+              <div class="setting-row"><div><div class="setting-label">Invoice Overdue Alert</div><div class="setting-sub">Alert on overdue invoices</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+              <div class="setting-row"><div><div class="setting-label">Equipment Service Due</div><div class="setting-sub">Alert 7 days before service date</div></div><label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label></div>
+            </div>
+          </div>
+          <div>
+            <div class="settings-section">
+              <div class="settings-section-header">User Management</div>
+              <div id="userListSettings"></div>
+              <div class="setting-row"><div><button class="btn-add" style="margin:0;font-size:12px;" onclick="openModal('addUserSettingsModal')">+ Add User</button></div></div>
+            </div>
+            <div class="settings-section">
+              <div class="settings-section-header">System</div>
+              <div class="setting-row"><div><div class="setting-label">Dark Mode</div><div class="setting-sub">Switch to dark theme</div></div><label class="toggle"><input type="checkbox"/><span class="toggle-slider"></span></label></div>
+              <div class="setting-row"><div><div class="setting-label">Auto Backup</div><div class="setting-sub">Daily backup to cloud</div></div><label class="toggle"><input type="checkbox" checked/><span class="toggle-slider"></span></label></div>
+              <div class="setting-row"><div><div class="setting-label">Version</div><div class="setting-sub">SparkWave ERP v3.0</div></div><span class="pill pill-green">Latest</span></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+  </div><!-- /main -->
+</div><!-- /appScreen -->
+
+<!-- ===== MODALS ===== -->
+<div class="modal-overlay" id="addProjectModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add New Project</span><button class="modal-close" onclick="closeModal('addProjectModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Project Name</label><input id="pName" type="text" placeholder="e.g. Anna Nagar Complex"/></div><div class="m-field"><label>Client</label><input id="pClient" type="text" placeholder="Client name"/></div></div>
+    <div class="m-row"><div class="m-field"><label>Start Date</label><input id="pStart" type="date"/></div><div class="m-field"><label>Deadline</label><input id="pDeadline" type="date"/></div></div>
+    <div class="m-row"><div class="m-field"><label>Budget (₹)</label><input id="pBudget" type="text" placeholder="e.g. 2,50,00,000"/></div><div class="m-field"><label>Site Location</label><input id="pSite" type="text" placeholder="Address"/></div></div>
+    <button class="btn-submit" onclick="submitProject()">Create Project</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addWorkerModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Employee</span><button class="modal-close" onclick="closeModal('addWorkerModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Full Name</label><input id="wName" type="text" placeholder="Employee name"/></div><div class="m-field"><label>Role</label><select id="wRole"><option>Engineer</option><option>Supervisor</option><option>Mason</option><option>Labour</option><option>Electrician</option></select></div></div>
+    <div class="m-row"><div class="m-field"><label>Monthly Salary (₹)</label><input id="wSalary" type="text" placeholder="e.g. 25000"/></div><div class="m-field"><label>Assigned Site</label><select id="wSite"><option>Site A</option><option>Site B</option><option>Site C</option><option>HQ</option></select></div></div>
+    <div class="m-field"><label>Phone Number</label><input id="wPhone" type="text" placeholder="+91 XXXXX XXXXX"/></div>
+    <button class="btn-submit" onclick="submitWorker()">Add Employee</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addStockModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Stock Entry</span><button class="modal-close" onclick="closeModal('addStockModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Material Name</label><input id="sName" type="text" placeholder="e.g. OPC Cement"/></div><div class="m-field"><label>Category</label><select id="sCat"><option>Concrete</option><option>Steel</option><option>Electrical</option><option>Plumbing</option><option>Other</option></select></div></div>
+    <div class="m-row"><div class="m-field"><label>Quantity</label><input id="sQty" type="text" placeholder="e.g. 200"/></div><div class="m-field"><label>Unit</label><select id="sUnit"><option>Bags</option><option value="tons">Tons</option><option value="nos">Nos</option><option value="mtrs">Meters</option><option value="loads">Loads</option></select></div></div>
+    <div class="m-row"><div class="m-field"><label>Rate per Unit (₹)</label><input id="sRate" type="text" placeholder="e.g. 350"/></div><div class="m-field"><label>Site</label><select id="sSite"><option>Site A</option><option>Site B</option><option>Site C</option></select></div></div>
+    <button class="btn-submit" onclick="submitStock()">Add to Inventory</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addPOModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">New Purchase Order</span><button class="modal-close" onclick="closeModal('addPOModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Vendor Name</label><input id="poVendor" type="text" placeholder="Vendor"/></div><div class="m-field"><label>Material</label><input id="poMaterial" type="text" placeholder="Material name"/></div></div>
+    <div class="m-row"><div class="m-field"><label>Quantity</label><input id="poQty" type="text"/></div><div class="m-field"><label>Amount (₹)</label><input id="poAmount" type="text"/></div></div>
+    <div class="m-row"><div class="m-field"><label>Order Date</label><input id="poOrderDate" type="date"/></div><div class="m-field"><label>Expected Delivery</label><input id="poDelivery" type="date"/></div></div>
+    <button class="btn-submit" onclick="submitPO()">Create PO</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addInvoiceModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">New Invoice</span><button class="modal-close" onclick="closeModal('addInvoiceModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Client</label><select id="invClient"><option>Kumar Builders</option><option>Horizon Infra</option><option>Priya Constructions</option><option>TN Govt</option></select></div><div class="m-field"><label>Project</label><select id="invProject"><option>Velachery Residential</option><option>OMR Tech Park</option><option>Porur Villa</option><option>Tambaram School</option></select></div></div>
+    <div class="m-row"><div class="m-field"><label>Amount (₹)</label><input id="invAmount" type="text" placeholder="e.g. 50,00,000"/></div><div class="m-field"><label>Due Date</label><input id="invDue" type="date"/></div></div>
+    <div class="m-field"><label>Description</label><input id="invDesc" type="text" placeholder="Milestone / work description"/></div>
+    <button class="btn-submit" onclick="submitInvoice()">Generate Invoice</button>
+  </div>
+</div>
+
+<!-- ===== DOCUMENT UPLOAD MODAL ===== -->
+<div class="modal-overlay" id="addDocModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Upload Document</span><button class="modal-close" onclick="closeModal('addDocModal')">✕</button></div>
+    <div class="m-row">
+      <div class="m-field"><label>Document Name</label><input id="docName" type="text" placeholder="e.g. Foundation Drawing Rev1"/></div>
+      <div class="m-field"><label>Type</label><select id="docType"><option>Drawing</option><option>Permit</option><option>Contract</option><option>Report</option><option>Other</option></select></div>
+    </div>
+    <div class="m-field"><label>Project</label><select id="docProject"><option value="General">General</option></select></div>
+    <div class="m-field"><label>Document URL / Link</label><input id="docUrl" type="text" placeholder="https://drive.google.com/... or file link"/></div>
+    <button class="btn-submit" onclick="submitDocument()">Upload Document</button>
+  </div>
+</div>
+
+<!-- ===== COMPANY EDIT MODAL ===== -->
+<div class="modal-overlay" id="editCompanyModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Edit Company Info</span><button class="modal-close" onclick="closeModal('editCompanyModal')">✕</button></div>
+    <div class="m-field"><label>Company Name</label><input id="cmpName" type="text" placeholder="Your Company Pvt Ltd"/></div>
+    <div class="m-field"><label>GSTIN</label><input id="cmpGST" type="text" placeholder="e.g. 33AABCS1429B1Z5"/></div>
+    <div class="m-field"><label>Address</label><input id="cmpAddr" type="text" placeholder="City, State - Pincode"/></div>
+    <button class="btn-submit" onclick="submitCompanyInfo()">Save Changes</button>
+  </div>
+</div>
+
+<!-- ===== ADD USER SETTINGS MODAL ===== -->
+<div class="modal-overlay" id="addUserSettingsModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add User Info</span><button class="modal-close" onclick="closeModal('addUserSettingsModal')">✕</button></div>
+    <div class="m-field"><label>Display Name</label><input id="usrName" type="text" placeholder="e.g. Rajesh Kumar"/></div>
+    <div class="m-field"><label>Email</label><input id="usrEmail" type="email" placeholder="user@company.com"/></div>
+    <div class="m-field"><label>Role</label><select id="usrRole"><option>Admin</option><option>Site Manager</option><option>Accountant</option><option>Client</option></select></div>
+    <div class="m-field" style="background:#FFF4E0;border-radius:9px;padding:10px;font-size:12px;color:#B7700A;">⚠️ Create this user in Firebase Console → Authentication → Users first, then add here for display.</div>
+    <button class="btn-submit" onclick="submitUserSettings()">Add User</button>
+  </div>
+</div>
+
+<div class="modal-overlay" id="addEquipModal">
+  <div class="modal">
+    <div class="modal-header"><span class="modal-title">Add Equipment</span><button class="modal-close" onclick="closeModal('addEquipModal')">✕</button></div>
+    <div class="m-row"><div class="m-field"><label>Equipment Name</label><input id="eqName" type="text" placeholder="e.g. Concrete Pump"/></div><div class="m-field"><label>Model/Type</label><input id="eqModel" type="text" placeholder="Model"/></div></div>
+    <div class="m-row"><div class="m-field"><label>Assigned Site</label><select id="eqSite"><option>Site A</option><option>Site B</option><option>Site C</option><option>Workshop</option></select></div><div class="m-field"><label>Next Service Date</label><input id="eqService" type="date"/></div></div>
+    <button class="btn-submit" onclick="submitEquipment()">Add Equipment</button>
+  </div>
+</div>
+
+<script>
+// =========================================================
+//  SparkWave ERP — v3.0
+//  ✅ Firebase Firestore (Real-time sync)
+//  ✅ Firebase Authentication (Email/Password)
+//  ✅ Role-Based Access Control
+//  ✅ GitHub Pages ready
+// =========================================================
+
+// ---------- DATE ----------
+document.getElementById('datechip').textContent = new Date().toLocaleDateString('en-IN',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+
+// =========================================================
+//  FIREBASE CONFIG — Paste your config from Firebase Console
+// =========================================================
+var firebaseConfig = {
+  apiKey:            "AIzaSyDks508hs6O21Ly2xuS_-FI7mlK7DpyMOc",
+  authDomain:        "sparkwave-erp.firebaseapp.com",
+  projectId:         "sparkwave-erp",
+  storageBucket:     "sparkwave-erp.firebasestorage.app",
+  messagingSenderId: "311135590117",
+  appId:             "1:311135590117:web:c903bb50b6bbe64907e60c"
+};
+
+// Init Firebase
+firebase.initializeApp(firebaseConfig);
+var db   = firebase.firestore();
+var auth = firebase.auth();
+
+// =========================================================
+//  USERS CONFIG — Admin set karo neenga
+//  Format: email → { role, name }
+// =========================================================
+var USERS = {
+  "admin@sparkwave.com":      { role: "Admin",        name: "Admin User" },
+  "sitemgr@sparkwave.com":    { role: "Site Manager", name: "Site Manager" },
+  "accounts@sparkwave.com":   { role: "Accountant",   name: "Accountant" },
+  "client@sparkwave.com":     { role: "Client",       name: "Client User" }
+};
+
+// ---------- STORAGE HELPERS (Firebase + localStorage fallback) ----------
+function lsGet(key, fallback){
+  try{ var v=localStorage.getItem(key); return v?JSON.parse(v):fallback; }catch(e){ return fallback; }
+}
+function lsSet(key, val){
+  // Save to localStorage immediately (fast UI)
+  try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+  // Also sync to Firestore (real-time backend)
+  if(db && _fbOrgId){
+    db.collection('orgs').doc(_fbOrgId).collection('data').doc(key).set({ value: val })
+      .catch(function(e){ console.warn('Firestore write failed:', e); });
+  }
+}
+
+// Org ID (shared key so all users see same data)
+var _fbOrgId = 'sparkwave_org_1';
+
+// Load all data from Firestore on login
+function _loadFirestoreData(){
+  var keys = ['sw_workers','sw_projects','sw_inventory','sw_purchase','sw_invoices','sw_equipment','sw_documents','sw_nextPoId','sw_nextInvId','sw_companyInfo','sw_settingsUsers'];
+  var defaults = {
+    sw_workers:   STATE.workers,
+    sw_projects:  STATE.projects,
+    sw_inventory: STATE.inventory,
+    sw_purchase:  STATE.purchase,
+    sw_invoices:  STATE.invoices,
+    sw_equipment: STATE.equipment,
+    sw_documents: STATE.documents,
+    sw_nextPoId:  STATE.nextPoId,
+    sw_nextInvId: STATE.nextInvId,
+    sw_companyInfo: {name:'—',gst:'—',address:'—'},
+    sw_settingsUsers: []
+  };
+  keys.forEach(function(key){
+    // Real-time listener for each collection
+    db.collection('orgs').doc(_fbOrgId).collection('data').doc(key)
+      .onSnapshot(function(snap){
+        if(snap.exists){
+          var val = snap.data().value;
+          // Update STATE
+          if(key === 'sw_workers')   STATE.workers   = val;
+          if(key === 'sw_projects')  STATE.projects  = val;
+          if(key === 'sw_inventory') STATE.inventory = val;
+          if(key === 'sw_purchase')  STATE.purchase  = val;
+          if(key === 'sw_invoices')  STATE.invoices  = val;
+          if(key === 'sw_equipment') STATE.equipment = val;
+          if(key === 'sw_documents') STATE.documents = val;
+          if(key === 'sw_nextPoId')  STATE.nextPoId  = val;
+          if(key === 'sw_nextInvId') STATE.nextInvId = val;
+          // Also update localStorage cache
+          try{ localStorage.setItem(key, JSON.stringify(val)); }catch(e){}
+          // Re-render UI
+          renderAll();
+          updateDashboardStats && updateDashboardStats();
+          renderDashboard();
+        } else {
+          // First time — write defaults to Firestore
+          db.collection('orgs').doc(_fbOrgId).collection('data').doc(key)
+            .set({ value: defaults[key] });
+        }
+      }, function(err){ console.warn('Firestore listen error:', err); });
+  });
+}
+
+// ---------- APP STATE (localStorage backed) ----------
+var STATE = {
+  workers:   lsGet('sw_workers',   []),
+  projects:  lsGet('sw_projects',  []),
+  inventory: lsGet('sw_inventory', []),
+  purchase:  lsGet('sw_purchase',  []),
+  invoices:  lsGet('sw_invoices',  []),
+  equipment: lsGet('sw_equipment', []),
+  documents: lsGet('sw_documents', []),
+  nextPoId:  lsGet('sw_nextPoId',  1),
+  nextInvId: lsGet('sw_nextInvId', 1)
+};
+
+// ---------- ROLE ----------
+var currentRole = 'Admin';
+function setRole(el, role){
+  document.querySelectorAll('.role-tab').forEach(t=>t.classList.remove('active'));
+  el.classList.add('active');
+  currentRole = role;
+}
+
+// ---------- ROLE ACCESS CONFIG ----------
+var ROLE_ACCESS = {
+  'Admin':          { pages: ['dashboard','projects','hr','budget','billing','inventory','purchase','equipment','documents','settings'], canEdit: true },
+  'PM':             { pages: ['dashboard','projects','hr','budget','inventory','purchase','equipment','documents'], canEdit: true },
+  'Finance':        { pages: ['dashboard','budget','billing','purchase'], canEdit: true },
+  'Site Engineer':  { pages: ['dashboard','projects','inventory','equipment','documents'], canEdit: false },
+  'Site Manager':   { pages: ['dashboard','projects','inventory','equipment','documents'], canEdit: true },
+  'Accountant':     { pages: ['dashboard','budget','billing','purchase'], canEdit: true },
+  'Client':         { pages: ['dashboard','projects','billing','documents'], canEdit: false }
+};
+
+var NAV_PAGE_MAP = {
+  dashboard:'dashboard', projects:'projects', hr:'hr', budget:'budget',
+  billing:'billing', inventory:'inventory', purchase:'purchase',
+  equipment:'equipment', documents:'documents', settings:'settings'
+};
+
+function applyRoleAccess(){
+  var access = ROLE_ACCESS[currentRole] || ROLE_ACCESS['Admin'];
+  // Show/hide nav items
+  document.querySelectorAll('.nav-item[data-page]').forEach(function(item){
+    var page = item.getAttribute('data-page');
+    item.style.display = access.pages.indexOf(page) >= 0 ? '' : 'none';
+  });
+  // Hide/show section labels based on visible items
+  document.querySelectorAll('.sb-section').forEach(function(sec){
+    var next = sec.nextElementSibling;
+    var hasVisible = false;
+    while(next && !next.classList.contains('sb-section')){
+      if(next.classList.contains('nav-item') && next.style.display !== 'none') hasVisible = true;
+      next = next.nextElementSibling;
+    }
+    sec.style.display = hasVisible ? '' : 'none';
+  });
+  // Hide add/edit buttons for read-only roles
+  if(!access.canEdit){
+    document.querySelectorAll('.btn-add').forEach(function(b){ b.style.display='none'; });
+  } else {
+    document.querySelectorAll('.btn-add').forEach(function(b){ b.style.display=''; });
+  }
+}
+
+// ---------- LOGIN ----------
+function doLogin(){
+  var email    = document.getElementById('loginEmail').value.trim();
+  var password = document.getElementById('loginPass').value;
+
+  // Show loading state
+  var btn = document.querySelector('.btn-primary');
+  btn.textContent = 'Signing in...';
+  btn.disabled = true;
+
+  auth.signInWithEmailAndPassword(email, password)
+    .then(function(cred){
+      // Get role from USERS config
+      var userInfo = USERS[email.toLowerCase()];
+      if(!userInfo){
+        showToast('⛔ User not configured! Add to USERS config.');
+        btn.textContent = 'Sign In to SparkWave ERP';
+        btn.disabled = false;
+        return;
+      }
+      currentRole = userInfo.role;
+      _doEnterApp(userInfo.name);
+      _loadFirestoreData();
+    })
+    .catch(function(err){
+      var msg = err.code === 'auth/wrong-password' ? 'Wrong password!' :
+                err.code === 'auth/user-not-found'  ? 'User not found!'  :
+                err.code === 'auth/invalid-email'   ? 'Invalid email!'   :
+                err.message;
+      showToast('❌ ' + msg);
+      btn.textContent = 'Sign In to SparkWave ERP';
+      btn.disabled = false;
+    });
+}
+
+function _doEnterApp(displayName){
+  document.getElementById('loginScreen').classList.remove('active');
+  document.getElementById('appScreen').classList.add('active');
+
+  // Update user name in sidebar
+  var nameEl = document.querySelector('.user-name');
+  if(nameEl) nameEl.textContent = displayName || 'User';
+
+  var roleLabels = {'Admin':'Administrator','PM':'Project Manager','Finance':'Finance Manager','Site Engineer':'Site Engineer','Site Manager':'Site Manager','Accountant':'Accountant','Client':'Client'};
+  document.getElementById('userRoleLabel').textContent = roleLabels[currentRole] || currentRole;
+  var initials = {'Admin':'AD','PM':'PM','Finance':'FN','Site Engineer':'SE','Site Manager':'SM','Accountant':'AC','Client':'CL'};
+  document.querySelector('.user-av').textContent = initials[currentRole] || 'US';
+
+  applyRoleAccess();
+
+  var access = ROLE_ACCESS[currentRole] || ROLE_ACCESS['Admin'];
+  var firstPage = access.pages[0];
+
+  document.querySelectorAll('.page-section').forEach(function(s){ s.classList.remove('active'); });
+  var sec = document.getElementById('sec-' + firstPage);
+  if(sec) sec.classList.add('active');
+
+  document.getElementById('pageTitle').textContent = pages[firstPage] || firstPage;
+  document.getElementById('pageSub').textContent = subs[firstPage] || '';
+
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  var activeNav = document.querySelector('.nav-item[data-page="'+firstPage+'"]');
+  if(activeNav) activeNav.classList.add('active');
+
+  renderAll();
+  initCharts();
+}
+
+// ---------- LOGOUT ----------
+function doLogout(){
+  auth.signOut().then(function(){
+    currentRole = 'Admin';
+    _fbOrgId = 'sparkwave_org_1';
+    document.getElementById('appScreen').classList.remove('active');
+    document.getElementById('loginScreen').classList.add('active');
+    document.querySelectorAll('.role-tab').forEach(function(t){ t.classList.remove('active'); });
+    var adminTab = document.querySelector('.role-tab');
+    if(adminTab) adminTab.classList.add('active');
+    var btn = document.querySelector('.btn-primary');
+    if(btn){ btn.textContent = 'Sign In to SparkWave ERP'; btn.disabled = false; }
+  }).catch(function(){ 
+    // fallback even if signOut fails
+    currentRole = 'Admin';
+    document.getElementById('appScreen').classList.remove('active');
+    document.getElementById('loginScreen').classList.add('active');
+  });
+}
+
+// ---------- NAVIGATION ----------
+var pages = { dashboard:'Dashboard', projects:'Projects', hr:'HR & Payroll', budget:'Budget & Cost', billing:'Billing & Invoice', inventory:'Inventory', purchase:'Purchase Orders', equipment:'Equipment', documents:'Documents', settings:'Settings' };
+var subs =  { dashboard:'Overview of all operations', projects:'Manage active & upcoming projects', hr:'Employee management & payroll', budget:'Track project costs', billing:'Invoices & payments', inventory:'Materials stock tracking', purchase:'Vendor purchase orders', equipment:'Machinery & tools', documents:'Drawings, permits & contracts', settings:'System configuration' };
+
+function nav(el, page){
+  // Block if role doesn't have access
+  var access = ROLE_ACCESS[currentRole] || ROLE_ACCESS['Admin'];
+  if(access.pages.indexOf(page) < 0){
+    showToast('⛔ Access denied for your role!');
+    return;
+  }
+  document.querySelectorAll('.nav-item').forEach(function(n){ n.classList.remove('active'); });
+  el.classList.add('active');
+  document.querySelectorAll('.page-section').forEach(function(s){ s.classList.remove('active'); });
+  document.getElementById('sec-'+page).classList.add('active');
+  document.getElementById('pageTitle').textContent = pages[page];
+  document.getElementById('pageSub').textContent = subs[page];
+  if(window.innerWidth<=768){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobOverlay').classList.remove('open'); }
+}
+
+// ---------- SIDEBAR ----------
+function toggleSidebar(){
+  var sb = document.getElementById('sidebar');
+  if(window.innerWidth<=768){ sb.classList.toggle('mobile-open'); document.getElementById('mobOverlay').classList.toggle('open'); }
+  else{ sb.classList.toggle('collapsed'); }
+}
+function closeMob(){ document.getElementById('sidebar').classList.remove('mobile-open'); document.getElementById('mobOverlay').classList.remove('open'); }
+
+// ---------- MODAL ----------
+function openModal(id){ document.getElementById(id).classList.add('open'); }
+function closeModal(id){ document.getElementById(id).classList.remove('open'); }
+document.querySelectorAll('.modal-overlay').forEach(o=>{ o.addEventListener('click',function(e){ if(e.target===this) this.classList.remove('open'); }); });
+
+// =========================================================
+//  RENDER FUNCTIONS
+// =========================================================
+
+function renderAll(){
+  renderDashboard();
+  renderWorkers();
+  renderProjectsTable();
+  renderInventory();
+  renderPurchase();
+  renderInvoices();
+  renderEquipment();
+  renderDocuments();
+  renderBudget();
+  renderBillingStats();
+  renderSettingsUsers();
+  renderCompanyInfo();
+  populateDocProjectFilter();
+}
+
+// ---- EMPTY STATE helper ----
+function emptyState(icon, title, sub){
+  return '<tr><td colspan="20"><div class="empty-state"><div class="es-icon">'+icon+'</div><div class="es-title">'+title+'</div><div class="es-sub">'+sub+'</div></div></td></tr>';
+}
+function emptyStateDiv(icon, title, sub){
+  return '<div class="empty-state"><div class="es-icon">'+icon+'</div><div class="es-title">'+title+'</div><div class="es-sub">'+sub+'</div></div>';
+}
+
+// ---- BUDGET RENDER ----
+function renderBudget(){
+  var tbody = document.getElementById('budgetTbody');
+  if(!tbody) return;
+  if(STATE.projects.length === 0){
+    tbody.innerHTML = emptyState('📊','No Projects Yet','Add a project to track budget & cost');
+    return;
+  }
+  tbody.innerHTML = STATE.projects.map(function(p){
+    var c = p.progress>=80?'var(--green)':p.progress>=40?'var(--blue)':'var(--amber)';
+    var sc = statusPill(p.status);
+    return '<tr><td><b>'+p.name+'</b></td><td>'+p.client+'</td><td>'+p.budget+'</td>'
+      +'<td><div style="min-width:100px"><div style="font-size:12px;margin-bottom:3px;">'+p.progress+'%</div>'
+      +'<div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%;background:'+c+'"></div></div></div></td>'
+      +'<td><span class="pill '+sc+'">'+p.status+'</span></td></tr>';
+  }).join('');
+  // Update stats
+  var el;
+  el=document.getElementById('budgetTotalProjects'); if(el) el.textContent=STATE.projects.length;
+  el=document.getElementById('budgetActiveProjects'); if(el) el.textContent=STATE.projects.filter(function(p){return p.status==='Active';}).length;
+  el=document.getElementById('budgetOnHold'); if(el) el.textContent=STATE.projects.filter(function(p){return p.status==='On Hold';}).length;
+  el=document.getElementById('budgetCompleted'); if(el) el.textContent=STATE.projects.filter(function(p){return p.status==='Completed';}).length;
+}
+
+// ---- BILLING STATS ----
+function renderBillingStats(){
+  var el;
+  el=document.getElementById('billTotal'); if(el) el.textContent=STATE.invoices.length;
+  el=document.getElementById('billPaid'); if(el) el.textContent=STATE.invoices.filter(function(i){return i.status==='Paid';}).length;
+  el=document.getElementById('billPending'); if(el) el.textContent=STATE.invoices.filter(function(i){return i.status==='Pending';}).length;
+  el=document.getElementById('billOverdue'); if(el) el.textContent=STATE.invoices.filter(function(i){return i.status==='Overdue';}).length;
+}
+
+// ---- DOCUMENTS RENDER ----
+function renderDocuments(){
+  var tbody = document.getElementById('docTbody');
+  if(!tbody) return;
+  if(STATE.documents.length === 0){
+    tbody.innerHTML = emptyState('📁','No Documents Yet','Upload drawings, permits, contracts & reports');
+    return;
+  }
+  var typeColors = {'Drawing':'pill-blue','Permit':'pill-green','Contract':'pill-teal','Report':'pill-amber','Other':'pill-blue'};
+  var typeIcons  = {'Drawing':'📐','Permit':'📋','Contract':'📄','Report':'📊','Other':'📎'};
+  tbody.innerHTML = STATE.documents.map(function(d){
+    var pill = typeColors[d.type]||'pill-blue';
+    var icon = typeIcons[d.type]||'📎';
+    var viewBtn = d.url ? '<a href="'+d.url+'" target="_blank"><button class="btn-outline" style="padding:4px 10px;font-size:12px;">View</button></a>'
+                        : '<button class="btn-outline" style="padding:4px 10px;font-size:12px;opacity:.4;" disabled>No Link</button>';
+    return '<tr><td>'+icon+' '+d.name+'</td><td>'+d.project+'</td><td><span class="pill '+pill+'">'+d.type+'</span></td><td>'+d.uploadedBy+'</td><td>'+d.date+'</td><td>'+viewBtn+'</td></tr>';
+  }).join('');
+}
+
+function populateDocProjectFilter(){
+  var sel = document.getElementById('docFilterProject');
+  if(!sel) return;
+  var existing = Array.from(sel.options).map(function(o){return o.value;});
+  STATE.projects.forEach(function(p){
+    if(existing.indexOf(p.name)<0){
+      var opt = document.createElement('option');
+      opt.value = opt.textContent = p.name;
+      sel.appendChild(opt);
+    }
+  });
+  // Also populate doc project select in modal
+  var docProjSel = document.getElementById('docProject');
+  if(docProjSel){
+    docProjSel.innerHTML = '<option value="General">General</option>';
+    STATE.projects.forEach(function(p){
+      var opt = document.createElement('option');
+      opt.value = opt.textContent = p.name;
+      docProjSel.appendChild(opt);
+    });
+  }
+}
+
+function submitDocument(){
+  var name = document.getElementById('docName').value.trim();
+  var type = document.getElementById('docType').value;
+  var project = document.getElementById('docProject').value;
+  var url  = document.getElementById('docUrl').value.trim();
+  if(!name){ alert('Document name kodunga!'); return; }
+  var today = new Date().toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'});
+  STATE.documents.push({id:Date.now(), name:name, type:type, project:project, url:url, uploadedBy: currentRole, date:today});
+  lsSet('sw_documents', STATE.documents);
+  renderDocuments();
+  closeModal('addDocModal');
+  document.getElementById('docName').value='';
+  document.getElementById('docUrl').value='';
+  showToast('Document uploaded! ✅');
+}
+
+// ---- SETTINGS ----
+function renderSettingsUsers(){
+  var container = document.getElementById('userListSettings');
+  if(!container) return;
+  var roleColors = {'Admin':'pill-blue','Site Manager':'pill-teal','Accountant':'pill-amber','Client':'pill-green'};
+  var users = lsGet('sw_settingsUsers', []);
+  if(users.length === 0){
+    container.innerHTML = '<div class="setting-row"><div><div class="setting-label" style="color:var(--muted);">No users added yet</div></div></div>';
+    return;
+  }
+  container.innerHTML = users.map(function(u){
+    return '<div class="setting-row"><div><div class="setting-label">'+u.name+'</div><div class="setting-sub">'+u.email+'</div></div><span class="pill '+(roleColors[u.role]||'pill-blue')+'">'+u.role+'</span></div>';
+  }).join('');
+}
+
+function submitUserSettings(){
+  var name  = document.getElementById('usrName').value.trim();
+  var email = document.getElementById('usrEmail').value.trim();
+  var role  = document.getElementById('usrRole').value;
+  if(!name||!email){ alert('Name & email venum!'); return; }
+  var users = lsGet('sw_settingsUsers', []);
+  users.push({name:name, email:email, role:role});
+  lsSet('sw_settingsUsers', users);
+  renderSettingsUsers();
+  closeModal('addUserSettingsModal');
+  document.getElementById('usrName').value='';
+  document.getElementById('usrEmail').value='';
+  showToast('User added! ✅');
+}
+
+function renderCompanyInfo(){
+  var info = lsGet('sw_companyInfo', {name:'—', gst:'—', address:'—'});
+  var el;
+  el=document.getElementById('setCompanyName'); if(el) el.textContent=info.name;
+  el=document.getElementById('setGSTIN');       if(el) el.textContent=info.gst;
+  el=document.getElementById('setAddress');     if(el) el.textContent=info.address;
+  // Pre-fill modal
+  var n=document.getElementById('cmpName'); if(n&&info.name!=='—') n.value=info.name;
+  var g=document.getElementById('cmpGST');  if(g&&info.gst!=='—')  g.value=info.gst;
+  var a=document.getElementById('cmpAddr'); if(a&&info.address!=='—') a.value=info.address;
+}
+
+function submitCompanyInfo(){
+  var name = document.getElementById('cmpName').value.trim();
+  var gst  = document.getElementById('cmpGST').value.trim();
+  var addr = document.getElementById('cmpAddr').value.trim();
+  var info = {name:name||'—', gst:gst||'—', address:addr||'—'};
+  lsSet('sw_companyInfo', info);
+  renderCompanyInfo();
+  closeModal('editCompanyModal');
+  showToast('Company info saved! ✅');
+}
+
+// =========================================================
+//  ROLE-SPECIFIC DASHBOARDS
+// =========================================================
+function renderDashboard(){
+  var el = document.getElementById('dashboardContent');
+  if(!el) return;
+  var role = currentRole;
+  if(role === 'Admin')                       el.innerHTML = dashboardAdmin();
+  else if(role === 'PM')                     el.innerHTML = dashboardPM();
+  else if(role === 'Finance')                el.innerHTML = dashboardFinance();
+  else if(role === 'Accountant')             el.innerHTML = dashboardFinance();
+  else if(role === 'Site Engineer')          el.innerHTML = dashboardSiteEng();
+  else if(role === 'Site Manager')           el.innerHTML = dashboardSiteEng();
+  else if(role === 'Client')                 el.innerHTML = dashboardClient();
+  else                                       el.innerHTML = dashboardSiteEng();
+  // re-init charts after render
+  setTimeout(initCharts, 50);
+}
+
+// ---- SVG ICONS ----
+var ICON = {
+  project: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M3 9l9-6 9 6v11a1 1 0 01-1 1H4a1 1 0 01-1-1z"/></svg>',
+  workers: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/></svg>',
+  revenue: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="12" y1="1" x2="12" y2="23"/><path d="M17 5H9.5a3.5 3.5 0 000 7h5a3.5 3.5 0 010 7H6"/></svg>',
+  stock:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 16V8a2 2 0 00-1-1.73l-7-4a2 2 0 00-2 0l-7 4A2 2 0 003 8v8a2 2 0 001 1.73l7 4a2 2 0 002 0l7-4A2 2 0 0021 16z"/></svg>',
+  invoice: '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z"/><polyline points="14 2 14 8 20 8"/></svg>',
+  budget:  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="3" width="20" height="14" rx="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>',
+  equip:   '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="2" y="7" width="20" height="14" rx="2"/><path d="M16 21V5a2 2 0 00-2-2h-4a2 2 0 00-2 2v16"/></svg>',
+  attend:  '<svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2"/><circle cx="9" cy="7" r="4"/><polyline points="16 11 18 13 22 9"/></svg>',
+};
+
+function statCard(color, iconSvg, label, value, badgeClass, badgeText){
+  return '<div class="stat-card">'
+    +'<div class="stat-icon bg-'+color+'" style="color:var(--'+color+')">'+iconSvg+'</div>'
+    +'<div class="stat-label">'+label+'</div>'
+    +'<div class="stat-value">'+value+'</div>'
+    +'<div class="stat-badge '+badgeClass+'">'+badgeText+'</div>'
+    +'</div>';
+}
+
+// ---- ADMIN DASHBOARD ----
+function dashboardAdmin(){
+  var activeProjects = STATE.projects.filter(function(p){return p.status==='Active';}).length;
+  var totalWorkers = STATE.workers.length;
+  var onLeave = STATE.workers.filter(function(w){return w.status==='Leave';}).length;
+  var lowStock = STATE.inventory.filter(function(i){return i.qty < i.min;}).length;
+  var pendingInv = STATE.invoices.filter(function(i){return i.status==='Pending'||i.status==='Overdue';}).length;
+  var activeEquip = STATE.equipment.filter(function(e){return e.status==='Active';}).length;
+
+  return '<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">'
+    + statCard('blue',  ICON.project, 'Active Projects', activeProjects, 'bg-green txt-green', '▲ Running')
+    + statCard('teal',  ICON.workers, 'Total Workers', totalWorkers, 'bg-amber txt-amber', onLeave+' on leave')
+    + statCard('green', ICON.revenue, 'Monthly Revenue', '₹42.6L', 'bg-green txt-green', '▲ 8.2%')
+    + statCard('amber', ICON.stock,   'Low Stock Items', lowStock, lowStock>0?'bg-red txt-red':'bg-green txt-green', lowStock>0?'Needs reorder':'All Good')
+    +'</div>'
+    +'<div class="charts-row">'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Monthly Budget vs Actual Cost</div><div class="card-sub">Last 6 months</div></div></div><canvas id="budgetChart" height="100"></canvas></div>'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Project Status</div><div class="card-sub">Distribution</div></div></div><canvas id="statusChart" height="180"></canvas></div>'
+    +'</div>'
+    +'<div class="two-col">'
+    +'<div class="card"><div class="card-header"><div class="card-title">Recent Purchase Orders</div></div>'
+    +'<table><thead><tr><th>Vendor</th><th>Material</th><th>Amount</th><th>Status</th></tr></thead><tbody>'
+    + STATE.purchase.slice(0,4).map(function(po){
+        var pc={'Delivered':'pill-green','In Transit':'pill-amber','Ordered':'pill-blue','Pending Approval':'pill-red'};
+        return '<tr><td>'+po.vendor+'</td><td>'+po.material+'</td><td>'+po.amount+'</td><td><span class="pill '+(pc[po.status]||'pill-blue')+'">'+po.status+'</span></td></tr>';
+      }).join('')
+    +'</tbody></table></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">Equipment Status</div></div>'
+    +'<table><thead><tr><th>Equipment</th><th>Site</th><th>Status</th></tr></thead><tbody>'
+    + STATE.equipment.slice(0,5).map(function(eq){
+        var pc={'Active':'pill-green','Maintenance':'pill-amber','Repair':'pill-red'};
+        var dot = eq.status==='Active'?'<span class="live-dot" style="background:#2ECC71;margin-right:4px;"></span>':'';
+        return '<tr><td>'+eq.name+'</td><td>'+eq.site.split('—')[0].trim()+'</td><td><span class="pill '+(pc[eq.status]||'pill-blue')+'">'+dot+eq.status+'</span></td></tr>';
+      }).join('')
+    +'</tbody></table></div>'
+    +'</div>';
+}
+
+// ---- PM DASHBOARD ----
+function dashboardPM(){
+  var activeProjects = STATE.projects.filter(function(p){return p.status==='Active';}).length;
+  var totalWorkers = STATE.workers.length;
+  var present = STATE.workers.filter(function(w){return w.status==='Present';}).length;
+  var pendingPO = STATE.purchase.filter(function(p){return p.status==='Ordered'||p.status==='Pending Approval';}).length;
+
+  return '<div style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(135deg,#0A2540,#1a3a5c);border-radius:14px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:700;color:#fff;">Good day, Project Manager 👷</div>'
+    +'<div style="font-size:13px;color:#7FAFC8;margin-top:4px;">Here\'s your project overview for today</div></div>'
+    +'<div style="font-size:28px;">📋</div></div>'
+    +'<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">'
+    + statCard('blue',  ICON.project, 'Active Projects', activeProjects, 'bg-green txt-green', 'In progress')
+    + statCard('teal',  ICON.workers, 'Team on Site', present, 'bg-green txt-green', 'Present today')
+    + statCard('amber', ICON.stock,   'Pending POs', pendingPO, pendingPO>0?'bg-amber txt-amber':'bg-green txt-green', 'Awaiting delivery')
+    + statCard('green', ICON.equip,   'Active Equipment', STATE.equipment.filter(function(e){return e.status==='Active';}).length, 'bg-green txt-green', 'Operational')
+    +'</div>'
+    +'<div class="charts-row">'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Project Progress</div><div class="card-sub">All active projects</div></div></div>'
+    +'<div style="padding:8px 0">'
+    + STATE.projects.map(function(p){
+        var c = p.progress>=80?'var(--green)':p.progress>=40?'var(--blue)':'var(--amber)';
+        return '<div style="margin-bottom:14px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">'
+          +'<span style="font-weight:600;color:var(--navy)">'+p.name+'</span>'
+          +'<span style="color:var(--muted)">'+p.progress+'%</span></div>'
+          +'<div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%;background:'+c+'"></div></div>'
+          +'<div style="font-size:11px;color:var(--subtle);margin-top:3px;">'+p.client+' · Deadline: '+p.deadline+'</div>'
+          +'</div>';
+      }).join('')
+    +'</div></div>'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Project Status</div></div></div><canvas id="statusChart" height="200"></canvas></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">Team Attendance Today</div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px;margin-top:4px;">'
+    + STATE.workers.slice(0,6).map(function(w){
+        return '<div style="display:flex;align-items:center;gap:10px;padding:10px;border:1px solid var(--border);border-radius:10px;">'
+          +'<div style="width:36px;height:36px;border-radius:50%;background:'+w.color+';display:flex;align-items:center;justify-content:center;font-size:11px;font-weight:700;color:#fff">'+w.av+'</div>'
+          +'<div style="flex:1"><div style="font-size:13px;font-weight:600;color:var(--navy)">'+w.name+'</div>'
+          +'<div style="font-size:11px;color:var(--muted)">'+w.role+'</div></div>'
+          +'<span class="pill '+pillClass(w.status)+'">'+w.status+'</span>'
+          +'</div>';
+      }).join('')
+    +'</div></div>';
+}
+
+// ---- FINANCE DASHBOARD ----
+function dashboardFinance(){
+  var paid = STATE.invoices.filter(function(i){return i.status==='Paid';}).length;
+  var pending = STATE.invoices.filter(function(i){return i.status==='Pending';}).length;
+  var overdue = STATE.invoices.filter(function(i){return i.status==='Overdue';}).length;
+  var totalPO = STATE.purchase.length;
+
+  return '<div style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(135deg,#1a4a2e,#0A2540);border-radius:14px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:700;color:#fff;">Finance Overview 💰</div>'
+    +'<div style="font-size:13px;color:#7FAFC8;margin-top:4px;">Revenue, invoices & cost tracking</div></div>'
+    +'<div style="font-size:28px;">📊</div></div>'
+    +'<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">'
+    + statCard('green',  ICON.revenue, 'Total Invoices',  STATE.invoices.length, 'bg-blue txt-blue',  'All time')
+    + statCard('teal',   ICON.invoice, 'Paid',            paid,    'bg-green txt-green','Collected')
+    + statCard('amber',  ICON.invoice, 'Pending', pending,   'bg-amber txt-amber', pending+' invoices')
+    + statCard('red',    ICON.invoice, 'Overdue',          overdue,   overdue>0?'bg-red txt-red':'bg-green txt-green', overdue>0?'Action needed':'Clear')
+    +'</div>'
+    +'<div class="charts-row">'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Monthly Budget vs Actual</div><div class="card-sub">Last 6 months</div></div></div><canvas id="budgetChart" height="100"></canvas></div>'
+    +'<div class="card"><div class="card-header"><div><div class="card-title">Invoice Summary</div></div></div>'
+    +'<canvas id="statusChart" height="180"></canvas></div>'
+    +'</div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">Recent Invoices</div><span class="pill pill-amber">'+pending+' pending</span></div>'
+    +'<table><thead><tr><th>Invoice #</th><th>Client</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>'
+    + STATE.invoices.map(function(inv){
+        var pc={'Paid':'pill-green','Pending':'pill-amber','Overdue':'pill-red'};
+        return '<tr><td><b>'+inv.id+'</b></td><td>'+inv.client+'</td><td>'+inv.amount+'</td><td>'+inv.due+'</td><td><span class="pill '+(pc[inv.status]||'pill-blue')+'">'+inv.status+'</span></td></tr>';
+      }).join('')
+    +'</tbody></table></div>';
+}
+
+// ---- SITE ENGINEER DASHBOARD ----
+function dashboardSiteEng(){
+  var lowStock = STATE.inventory.filter(function(i){return i.qty < i.min;});
+  var activeEquip = STATE.equipment.filter(function(e){return e.status==='Active';}).length;
+  var mainEquip = STATE.equipment.filter(function(e){return e.status==='Maintenance'||e.status==='Repair';}).length;
+  var present = STATE.workers.filter(function(w){return w.status==='Present';}).length;
+
+  return '<div style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(135deg,#2d1a4a,#0A2540);border-radius:14px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:700;color:#fff;">Site Operations Dashboard 🏗️</div>'
+    +'<div style="font-size:13px;color:#7FAFC8;margin-top:4px;">Equipment, inventory & site status</div></div>'
+    +'<div style="font-size:28px;">⚙️</div></div>'
+    +'<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">'
+    + statCard('blue',  ICON.project, 'Active Projects', STATE.projects.filter(function(p){return p.status==='Active';}).length, 'bg-green txt-green', 'On site')
+    + statCard('green', ICON.equip,   'Active Equipment', activeEquip, 'bg-green txt-green', 'Operational')
+    + statCard('red',   ICON.equip,   'Under Repair', mainEquip, mainEquip>0?'bg-red txt-red':'bg-green txt-green', mainEquip>0?'Needs attention':'All good')
+    + statCard('amber', ICON.stock,   'Low Stock Alerts', lowStock.length, lowStock.length>0?'bg-red txt-red':'bg-green txt-green', lowStock.length>0?'Reorder needed':'Stocked')
+    +'</div>'
+    +'<div class="two-col">'
+    +'<div class="card"><div class="card-header"><div class="card-title">Equipment on Site</div></div>'
+    +'<table><thead><tr><th>Equipment</th><th>Site</th><th>Hours</th><th>Status</th></tr></thead><tbody>'
+    + STATE.equipment.map(function(eq){
+        var pc={'Active':'pill-green','Maintenance':'pill-amber','Repair':'pill-red'};
+        var dot = eq.status==='Active'?'<span class="live-dot" style="background:#2ECC71;margin-right:4px;"></span>':'';
+        return '<tr><td>'+eq.icon+' '+eq.name+'</td><td>'+eq.site.split('—')[0].trim()+'</td><td>'+eq.hours+'</td><td><span class="pill '+(pc[eq.status]||'pill-blue')+'">'+dot+eq.status+'</span></td></tr>';
+      }).join('')
+    +'</tbody></table></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">⚠️ Low Stock Alerts</div></div>'
+    +(lowStock.length===0
+      ? '<div style="text-align:center;padding:30px;color:var(--muted)">✅ All materials stocked!</div>'
+      : '<table><thead><tr><th>Material</th><th>Current</th><th>Minimum</th><th>Status</th></tr></thead><tbody>'
+        + lowStock.map(function(item){
+            return '<tr><td>'+item.icon+' '+item.name+'</td><td style="color:var(--red);font-weight:700">'+item.qty+' '+item.unit+'</td><td>'+item.min+' '+item.unit+'</td><td><span class="pill pill-red">Reorder!</span></td></tr>';
+          }).join('')
+        +'</tbody></table>'
+    )
+    +'</div></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">Inventory Overview</div></div>'
+    +'<div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:12px;margin-top:4px;">'
+    + STATE.inventory.map(function(item){
+        var pct=Math.min(100,Math.round((item.qty/(item.min*2))*100));
+        var c=pct<30?'var(--red)':pct<60?'var(--amber)':'var(--blue)';
+        return '<div style="padding:12px;border:1px solid var(--border);border-radius:10px;">'
+          +'<div style="font-size:20px;margin-bottom:6px;">'+item.icon+'</div>'
+          +'<div style="font-size:13px;font-weight:700;color:var(--navy)">'+item.name+'</div>'
+          +'<div style="font-size:18px;font-weight:800;font-family:Poppins,sans-serif;color:var(--navy);margin:4px 0">'+item.qty+' <span style="font-size:11px;color:var(--muted)">'+item.unit+'</span></div>'
+          +'<div class="inv-bar"><div class="inv-fill" style="width:'+pct+'%;background:'+c+'"></div></div>'
+          +(item.qty<item.min?'<div style="font-size:10px;color:var(--red);margin-top:4px;font-weight:700">⚠ Low!</div>':'')
+          +'</div>';
+      }).join('')
+    +'</div></div>';
+}
+
+// ---- CLIENT DASHBOARD ----
+function dashboardClient(){
+  var myInvoices = STATE.invoices;
+  var paid = myInvoices.filter(function(i){return i.status==='Paid';}).length;
+  var pending = myInvoices.filter(function(i){return i.status==='Pending';}).length;
+  var overdue = myInvoices.filter(function(i){return i.status==='Overdue';}).length;
+  var activeProjects = STATE.projects.filter(function(p){return p.status==='Active';});
+
+  return '<div style="margin-bottom:14px;padding:14px 18px;background:linear-gradient(135deg,#0A2540,#1a3a5c);border-radius:14px;display:flex;align-items:center;justify-content:space-between;">'
+    +'<div><div style="font-family:Poppins,sans-serif;font-size:16px;font-weight:700;color:#fff;">Client Portal 🏢</div>'
+    +'<div style="font-size:13px;color:#7FAFC8;margin-top:4px;">Your projects & billing summary</div></div>'
+    +'<div style="font-size:28px;">👤</div></div>'
+    +'<div class="stat-grid" style="grid-template-columns:repeat(4,minmax(0,1fr))">'
+    + statCard('blue',  ICON.project, 'Active Projects', activeProjects.length, 'bg-green txt-green', 'In progress')
+    + statCard('green', ICON.invoice, 'Invoices Paid',   paid, 'bg-green txt-green', 'Cleared')
+    + statCard('amber', ICON.invoice, 'Pending Invoices',pending, pending>0?'bg-amber txt-amber':'bg-green txt-green', pending>0?'Action needed':'All clear')
+    + statCard('red',   ICON.invoice, 'Overdue',         overdue, overdue>0?'bg-red txt-red':'bg-green txt-green', overdue>0?'Pay now!':'None')
+    +'</div>'
+    +'<div class="two-col">'
+    +'<div class="card"><div class="card-header"><div class="card-title">Your Projects</div></div>'
+    +'<div style="padding:8px 0">'
+    + activeProjects.map(function(p){
+        var c = p.progress>=80?'var(--green)':p.progress>=40?'var(--blue)':'var(--amber)';
+        return '<div style="margin-bottom:14px">'
+          +'<div style="display:flex;justify-content:space-between;font-size:13px;margin-bottom:5px;">'
+          +'<span style="font-weight:600;color:var(--navy)">'+p.name+'</span>'
+          +'<span style="color:var(--muted)">'+p.progress+'%</span></div>'
+          +'<div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%;background:'+c+'"></div></div>'
+          +'<div style="font-size:11px;color:var(--subtle);margin-top:3px;">Deadline: '+p.deadline+'</div>'
+          +'</div>';
+      }).join('')
+    +'</div></div>'
+    +'<div class="card"><div class="card-header"><div class="card-title">Invoice History</div></div>'
+    +'<table><thead><tr><th>Invoice #</th><th>Amount</th><th>Due</th><th>Status</th></tr></thead><tbody>'
+    + myInvoices.map(function(inv){
+        var pc={'Paid':'pill-green','Pending':'pill-amber','Overdue':'pill-red'};
+        return '<tr><td><b>'+inv.id+'</b></td><td>'+inv.amount+'</td><td>'+inv.due+'</td><td><span class="pill '+(pc[inv.status]||'pill-blue')+'">'+inv.status+'</span></td></tr>';
+      }).join('')
+    +'</tbody></table></div>'
+    +'</div>';
+}
+
+// ---------- CHARTS ----------
+function initCharts(){
+  // Budget chart (Admin + Finance + PM)
+  var bCtx = document.getElementById('budgetChart');
+  if(bCtx && !bCtx._chartInst){
+    bCtx._chartInst = new Chart(bCtx,{
+      type:'bar',
+      data:{
+        labels:['Feb','Mar','Apr','May','Jun','Jul'],
+        datasets:[
+          {label:'Budget',data:[80,90,85,95,100,88],backgroundColor:'rgba(58,134,255,0.15)',borderColor:'#3A86FF',borderWidth:2,borderRadius:6},
+          {label:'Actual',data:[72,88,91,98,105,84],backgroundColor:'rgba(0,168,168,0.15)',borderColor:'#00A8A8',borderWidth:2,borderRadius:6}
+        ]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{position:'top'}},
+        scales:{
+          y:{beginAtZero:true,grid:{color:'rgba(0,0,0,0.04)'},ticks:{callback:function(v){return'₹'+v+'L';}}},
+          x:{grid:{display:false}}
+        }
+      }
+    });
+  }
+
+  // Status / Invoice donut chart
+  var sCtx = document.getElementById('statusChart');
+  if(sCtx && !sCtx._chartInst){
+    var chartData, chartLabels, chartColors;
+    if(currentRole === 'Finance'){
+      // Invoice breakdown for Finance
+      var paid    = STATE.invoices.filter(function(i){return i.status==='Paid';}).length;
+      var pending = STATE.invoices.filter(function(i){return i.status==='Pending';}).length;
+      var overdue = STATE.invoices.filter(function(i){return i.status==='Overdue';}).length;
+      chartLabels = ['Paid','Pending','Overdue'];
+      chartData   = [paid||1, pending||1, overdue||0];
+      chartColors = ['#2ECC71','#FFB347','#FF6B6B'];
+    } else {
+      // Project status for Admin / PM / Site Eng
+      var active   = STATE.projects.filter(function(p){return p.status==='Active';}).length;
+      var onHold   = STATE.projects.filter(function(p){return p.status==='On Hold';}).length;
+      var nearComp = STATE.projects.filter(function(p){return p.status==='Near Completion';}).length;
+      var completed= STATE.projects.filter(function(p){return p.status==='Completed';}).length;
+      chartLabels = ['Active','On Hold','Near Completion','Completed'];
+      chartData   = [active||2, onHold||1, nearComp||1, completed||0];
+      chartColors = ['#3A86FF','#FFB347','#00A8A8','#2ECC71'];
+    }
+    sCtx._chartInst = new Chart(sCtx,{
+      type:'doughnut',
+      data:{
+        labels: chartLabels,
+        datasets:[{
+          data: chartData,
+          backgroundColor: chartColors,
+          borderWidth:0,
+          hoverOffset:6
+        }]
+      },
+      options:{
+        responsive:true,
+        plugins:{legend:{position:'bottom',labels:{font:{size:12},padding:14}}},
+        cutout:'65%'
+      }
+    });
+  }
+}
+
+
+// ---------- WORKERS ----------
+var workerColors = ['#3A86FF','#00A8A8','#2ECC71','#FFB347','#FF6B6B','#9B59B6','#E74C3C','#1ABC9C','#F39C12','#8E44AD'];
+function pillClass(s){ return s==='Present'?'pill-green':s==='Leave'?'pill-red':'pill-amber'; }
+
+function renderWorkers(){
+  var grid = document.getElementById('workerGrid');
+  if(!grid) return;
+  if(STATE.workers.length === 0){
+    grid.innerHTML = emptyStateDiv('👷','No Employees Yet','Add your first employee using + Add Employee');
+    return;
+  }
+  grid.innerHTML = STATE.workers.map(function(w){
+    return '<div class="worker-card">'
+      +'<div class="worker-av" style="background:'+w.color+';">'+w.av+'</div>'
+      +'<div style="flex:1"><div class="worker-name">'+w.name+'</div>'
+      +'<div class="worker-role">'+w.role+' · '+w.site+'</div>'
+      +'<div class="worker-salary">₹'+w.salary+'/mo</div></div>'
+      +'<span class="pill '+pillClass(w.status)+'">'+w.status+'</span>'
+      +'</div>';
+  }).join('');
+  // Update stats
+  var present = STATE.workers.filter(function(w){return w.status==='Present';}).length;
+  var onLeave = STATE.workers.filter(function(w){return w.status==='Leave';}).length;
+  var totalSalary = STATE.workers.reduce(function(acc,w){ return acc + (parseInt((w.salary||'0').replace(/,/g,''))||0); }, 0);
+  var el;
+  el=document.getElementById('hrTotal'); if(el) el.textContent=STATE.workers.length;
+  el=document.getElementById('hrPresent'); if(el) el.textContent=present;
+  el=document.getElementById('hrLeave'); if(el) el.textContent=onLeave;
+  el=document.getElementById('hrPayroll'); if(el) el.textContent='₹'+(totalSalary>=100000?(totalSalary/100000).toFixed(1)+'L':totalSalary.toLocaleString('en-IN'));
+}
+
+function submitWorker(){
+  var name = document.getElementById('wName').value.trim();
+  var role = document.getElementById('wRole').value;
+  var salary = document.getElementById('wSalary').value.trim();
+  var site = document.getElementById('wSite').value;
+  var phone = document.getElementById('wPhone').value.trim();
+  if(!name){ alert('Employee name kodunga!'); return; }
+  var words = name.trim().split(' ');
+  var av = (words[0][0]+(words[1]?words[1][0]:words[0][1]||'')).toUpperCase();
+  var color = workerColors[STATE.workers.length % workerColors.length];
+  STATE.workers.push({id: Date.now(), name:name, role:role, site:site, salary:salary||'0', phone:phone, av:av, color:color, status:'Present'});
+  lsSet('sw_workers', STATE.workers);
+  renderWorkers();
+  updateDashboardStats();
+  closeModal('addWorkerModal');
+  document.getElementById('wName').value=''; document.getElementById('wSalary').value=''; document.getElementById('wPhone').value='';
+  showToast('Employee added! ✅');
+}
+
+// ---------- PROJECTS ----------
+function statusPill(s){
+  var map = {'Active':'pill-green','On Hold':'pill-amber','Completed':'pill-teal','Near Completion':'pill-teal'};
+  return map[s]||'pill-blue';
+}
+function progressColor(p){ return p>=80?'var(--green)':p>=40?'var(--blue)':'var(--amber)'; }
+
+function renderProjectsTable(){
+  var tbody = document.getElementById('projectsTbody');
+  if(!tbody) return;
+  if(STATE.projects.length === 0){
+    tbody.innerHTML = emptyState('🏗️','No Projects Yet','Create your first project using + New Project');
+    return;
+  }
+  tbody.innerHTML = STATE.projects.map(function(p){
+    return '<tr>'
+      +'<td><b>'+p.name+'</b></td>'
+      +'<td>'+p.client+'</td>'
+      +'<td>'+p.start+'</td>'
+      +'<td>'+p.deadline+'</td>'
+      +'<td>'+p.budget+'</td>'
+      +'<td><div style="min-width:100px"><div style="font-size:12px;margin-bottom:3px;">'+p.progress+'%</div>'
+      +'<div class="prog-bar"><div class="prog-fill" style="width:'+p.progress+'%;background:'+progressColor(p.progress)+';"></div></div></div></td>'
+      +'<td><span class="pill '+statusPill(p.status)+'">'+p.status+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function submitProject(){
+  var name = document.getElementById('pName').value.trim();
+  var client = document.getElementById('pClient').value.trim();
+  var start = document.getElementById('pStart').value;
+  var deadline = document.getElementById('pDeadline').value;
+  var budget = document.getElementById('pBudget').value.trim();
+  var site = document.getElementById('pSite').value.trim();
+  if(!name||!client){ alert('Project name & client venum!'); return; }
+  var fmt = function(d){ if(!d) return '—'; var x=new Date(d); return x.toLocaleDateString('en-IN',{month:'short',year:'numeric'}); };
+  STATE.projects.push({id:Date.now(), name:name, client:client, start:fmt(start), deadline:fmt(deadline), budget:budget?'₹'+budget:'—', progress:0, status:'Active', site:site});
+  lsSet('sw_projects', STATE.projects);
+  renderProjectsTable();
+  updateDashboardStats();
+  closeModal('addProjectModal');
+  ['pName','pClient','pStart','pDeadline','pBudget','pSite'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  showToast('Project created! ✅');
+}
+
+// ---------- INVENTORY ----------
+function renderInventory(){
+  var grid = document.getElementById('invGrid');
+  if(!grid) return;
+  if(STATE.inventory.length === 0){
+    grid.innerHTML = emptyStateDiv('📦','No Inventory Yet','Add materials using + Add Stock');
+    return;
+  }
+  grid.innerHTML = STATE.inventory.map(function(item){
+    var pct = Math.min(100, Math.round((item.qty / (item.min * 2)) * 100));
+    var barColor = pct<30?'var(--red)':pct<60?'var(--amber)':'var(--blue)';
+    var lowWarn = item.qty < item.min
+      ? '<div style="font-size:11px;color:var(--red);margin-top:6px;font-weight:600;">⚠ Low Stock!</div>'
+      : '<div style="font-size:11px;color:var(--muted);margin-top:6px;">Min: '+item.min+' '+item.unit+'</div>';
+    return '<div class="inv-card">'
+      +'<div class="inv-icon bg-'+item.color+'">'+item.icon+'</div>'
+      +'<div class="inv-name">'+item.name+'</div>'
+      +'<div class="stat-label">Current Stock</div>'
+      +'<div class="inv-qty">'+item.qty+' <span class="inv-unit">'+item.unit+'</span></div>'
+      +'<div class="inv-bar"><div class="inv-fill" style="width:'+pct+'%;background:'+barColor+';"></div></div>'
+      + lowWarn
+      +'</div>';
+  }).join('');
+  // Update low stock stat
+  var low = STATE.inventory.filter(function(i){ return i.qty < i.min; }).length;
+  var el = document.getElementById('dashLowStock'); if(el) el.textContent = low;
+}
+
+function submitStock(){
+  var name = document.getElementById('sName').value.trim();
+  var category = document.getElementById('sCat').value;
+  var qty = parseFloat(document.getElementById('sQty').value);
+  var unit = document.getElementById('sUnit').value;
+  if(!name||!qty){ alert('Material name & quantity kodunga!'); return; }
+  var icons = {Concrete:'🏗️',Steel:'🔩',Electrical:'⚡',Plumbing:'🔧',Other:'📦'};
+  var colors = {Concrete:'blue',Steel:'teal',Electrical:'green',Plumbing:'teal',Other:'amber'};
+  STATE.inventory.push({id:Date.now(), name:name, category:category, qty:qty, unit:unit, min:Math.round(qty*0.3), icon:icons[category]||'📦', color:colors[category]||'blue'});
+  lsSet('sw_inventory', STATE.inventory);
+  renderInventory();
+  closeModal('addStockModal');
+  document.getElementById('sName').value=''; document.getElementById('sQty').value=''; document.getElementById('sRate').value='';
+  showToast('Stock added! ✅');
+}
+
+// ---------- PURCHASE ORDERS ----------
+var poStatusPill = {'Delivered':'pill-green','In Transit':'pill-amber','Ordered':'pill-blue','Pending Approval':'pill-red'};
+
+function renderPurchase(){
+  var tbody = document.getElementById('poTbody');
+  if(!tbody) return;
+  if(STATE.purchase.length === 0){
+    tbody.innerHTML = emptyState('🛒','No Purchase Orders Yet','Create your first PO using + New PO');
+    return;
+  }
+  tbody.innerHTML = STATE.purchase.map(function(po){
+    var pill = poStatusPill[po.status]||'pill-blue';
+    return '<tr>'
+      +'<td><b>'+po.id+'</b></td>'
+      +'<td>'+po.vendor+'</td>'
+      +'<td>'+po.material+'</td>'
+      +'<td>'+po.qty+'</td>'
+      +'<td>'+po.amount+'</td>'
+      +'<td>'+po.orderDate+'</td>'
+      +'<td>'+po.delivery+'</td>'
+      +'<td><span class="pill '+pill+'">'+po.status+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function submitPO(){
+  var vendor = document.getElementById('poVendor').value.trim();
+  var material = document.getElementById('poMaterial').value.trim();
+  var qty = document.getElementById('poQty').value.trim();
+  var amount = document.getElementById('poAmount').value.trim();
+  var orderDate = document.getElementById('poOrderDate').value;
+  var delivery = document.getElementById('poDelivery').value;
+  if(!vendor||!material){ alert('Vendor & material name kodunga!'); return; }
+  var fmtDate = function(d){ if(!d) return '—'; var x=new Date(d); return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}); };
+  var poId = 'PO-2025-0'+STATE.nextPoId;
+  STATE.purchase.push({id:poId, vendor:vendor, material:material, qty:qty||'—', amount:amount?'₹'+amount:'—', orderDate:fmtDate(orderDate), delivery:fmtDate(delivery), status:'Ordered'});
+  STATE.nextPoId++;
+  lsSet('sw_purchase', STATE.purchase);
+  lsSet('sw_nextPoId', STATE.nextPoId);
+  renderPurchase();
+  closeModal('addPOModal');
+  ['poVendor','poMaterial','poQty','poAmount','poOrderDate','poDelivery'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  showToast('Purchase Order created! ✅');
+}
+
+// ---------- INVOICES ----------
+var invStatusPill = {'Paid':'pill-green','Pending':'pill-amber','Overdue':'pill-red'};
+
+function renderInvoices(){
+  var tbody = document.getElementById('invoiceTbody');
+  if(!tbody) return;
+  if(STATE.invoices.length === 0){
+    tbody.innerHTML = emptyState('🧾','No Invoices Yet','Generate your first invoice using + New Invoice');
+    return;
+  }
+  tbody.innerHTML = STATE.invoices.map(function(inv){
+    var pill = invStatusPill[inv.status]||'pill-blue';
+    return '<tr>'
+      +'<td><b>'+inv.id+'</b></td>'
+      +'<td>'+inv.client+'</td>'
+      +'<td>'+inv.project+'</td>'
+      +'<td>'+inv.amount+'</td>'
+      +'<td>'+inv.due+'</td>'
+      +'<td><span class="pill '+pill+'">'+inv.status+'</span></td>'
+      +'</tr>';
+  }).join('');
+}
+
+function submitInvoice(){
+  var client = document.getElementById('invClient').value;
+  var project = document.getElementById('invProject').value;
+  var amount = document.getElementById('invAmount').value.trim();
+  var due = document.getElementById('invDue').value;
+  var desc = document.getElementById('invDesc').value.trim();
+  if(!amount){ alert('Amount kodunga!'); return; }
+  var fmtDate = function(d){ if(!d) return '—'; var x=new Date(d); return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short',year:'numeric'}); };
+  var invId = 'INV-2025-0'+STATE.nextInvId;
+  STATE.invoices.push({id:invId, client:client, project:project+(desc?' — '+desc:''), amount:'₹'+amount, due:fmtDate(due), status:'Pending'});
+  STATE.nextInvId++;
+  lsSet('sw_invoices', STATE.invoices);
+  lsSet('sw_nextInvId', STATE.nextInvId);
+  renderInvoices();
+  closeModal('addInvoiceModal');
+  document.getElementById('invAmount').value=''; document.getElementById('invDue').value=''; document.getElementById('invDesc').value='';
+  showToast('Invoice generated! ✅');
+}
+
+// ---------- EQUIPMENT ----------
+var eqStatusPill = {'Active':'pill-green','Maintenance':'pill-amber','Repair':'pill-red','Idle':'pill-blue'};
+
+function renderEquipment(){
+  var grid = document.getElementById('equipGrid');
+  if(!grid) return;
+  if(STATE.equipment.length === 0){
+    grid.innerHTML = emptyStateDiv('🚜','No Equipment Yet','Add machinery & tools using + Add Equipment');
+    return;
+  }
+  grid.innerHTML = STATE.equipment.map(function(eq){
+    var pill = eqStatusPill[eq.status]||'pill-blue';
+    var dot = eq.status==='Active' ? '<span class="live-dot" style="background:#2ECC71;margin-right:4px;"></span>' : '';
+    return '<div class="equip-card">'
+      +'<div class="equip-card-icon bg-'+eq.color+'" style="font-size:28px;">'+eq.icon+'</div>'
+      +'<div class="equip-card-name">'+eq.name+'</div>'
+      +'<div class="equip-card-site">'+eq.site+'</div>'
+      +'<div class="equip-footer">'
+      +'<div class="equip-stat"><div class="equip-stat-val">'+eq.hours+'</div><div class="equip-stat-label">Hours Used</div></div>'
+      +'<div class="equip-stat"><div class="equip-stat-val">'+eq.service+'</div><div class="equip-stat-label">Next Service</div></div>'
+      +'<span class="pill '+pill+'">'+dot+eq.status+'</span>'
+      +'</div></div>';
+  }).join('');
+}
+
+function submitEquipment(){
+  var name = document.getElementById('eqName').value.trim();
+  var model = document.getElementById('eqModel').value.trim();
+  var site = document.getElementById('eqSite').value;
+  var service = document.getElementById('eqService').value;
+  if(!name){ alert('Equipment name kodunga!'); return; }
+  var fmtDate = function(d){ if(!d) return '—'; var x=new Date(d); return x.toLocaleDateString('en-IN',{day:'2-digit',month:'short'}); };
+  STATE.equipment.push({id:Date.now(), name:name+(model?' ('+model+')':''), site:site, hours:'0 hrs', service:fmtDate(service), status:'Active', icon:'🔧', color:'blue'});
+  lsSet('sw_equipment', STATE.equipment);
+  renderEquipment();
+  closeModal('addEquipModal');
+  ['eqName','eqModel','eqService'].forEach(function(id){ var el=document.getElementById(id); if(el) el.value=''; });
+  showToast('Equipment added! ✅');
+}
+
+// ---------- DASHBOARD STATS ----------
+function updateDashboardStats(){
+  var el;
+  el=document.getElementById('dashProjects'); if(el) el.textContent=STATE.projects.filter(function(p){return p.status==='Active';}).length;
+  el=document.getElementById('dashWorkers'); if(el) el.textContent=STATE.workers.length;
+  var onLeave = STATE.workers.filter(function(w){return w.status==='Leave';}).length;
+  el=document.getElementById('dashWorkersLeave'); if(el) el.textContent=onLeave+' on leave';
+  var low = STATE.inventory.filter(function(i){ return i.qty < i.min; }).length;
+  el=document.getElementById('dashLowStock'); if(el) el.textContent=low;
+}
+
+// ---------- TOAST NOTIFICATION ----------
+function showToast(msg){
+  var t = document.getElementById('swToast');
+  if(!t){ t=document.createElement('div'); t.id='swToast'; t.style.cssText='position:fixed;bottom:24px;right:24px;background:#0A2540;color:#fff;padding:12px 22px;border-radius:12px;font-size:14px;font-family:Poppins,sans-serif;font-weight:600;z-index:9999;box-shadow:0 8px 30px rgba(0,0,0,0.25);transition:opacity .3s;'; document.body.appendChild(t); }
+  t.textContent=msg; t.style.opacity='1';
+  clearTimeout(t._timer);
+  t._timer=setTimeout(function(){ t.style.opacity='0'; }, 2500);
+}
+
+</script>
+</body>
+</html>
